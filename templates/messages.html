@@ -1,0 +1,24 @@
+{% extends "home.html" %}
+
+{% block content %}
+    <h2>Your Inbox</h2>
+    <div class="inbox">
+        <p><strong>From Alice:</strong> Hey! Did you see my public post?</p>
+        <button id="replyBtn">Reply like an email</button>
+        <div id="replyBox" style="display: none; margin-top: 10px;">
+            <input type="text" placeholder="reply to your friend">
+            <button>➤</button>
+        </div>
+    </div>
+    <script>
+        const button = document.getElementById('replyBtn');
+        const replyBox = document.getElementById('replyBox');
+        button.addEventListener('click', () => {
+            if (replyBox.style.display === 'none') {
+                replyBox.style.display = 'block';
+            } else {
+                replyBox.style.display = 'none'; //this is gonna be a submit button in the future, but for now it just hides the text box when clicked again
+            }
+        });
+    </script>
+{% endblock %}

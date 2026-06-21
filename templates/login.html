@@ -1,0 +1,36 @@
+{% extends "home.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Log in to The Network</h2>
+    <form method="POST" id="loginForm">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" id="submitBtn" disabled>Login</button>
+    </form>
+    <a href="{% url 'registration' %}">don't have an account?</a>
+</div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("loginForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const inputs = form.querySelectorAll("input:not([type='hidden'])");
+
+        function checkInputs() {
+            let allFilled = true;
+            
+            // Loop through every input to see if it is empty
+            inputs.forEach(input => {
+                if (input.value.trim() === "") {
+                    allFilled = false;
+                }
+            });
+            submitBtn.disabled = !allFilled;
+        }
+        inputs.forEach(input => {
+            input.addEventListener("input", checkInputs);
+        });
+    });
+</script>
+{% endblock %}
