@@ -1,0 +1,26 @@
+{% extends "home.html" %}
+{% block content %}
+<div class="profile-card">
+    <h2>Search Users</h2>
+    <form method="GET" action="{% url 'search' %}" style="display: flex; gap: 10px; margin-bottom: 30px;">
+        <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Type a username..." required style="flex-grow: 1; padding: 8px;">
+        <button type="submit" style="padding: 8px 16px; cursor: pointer;">Search</button>
+    </form>
+    {% if query %}
+        <h3>Results for "{{ query }}"</h3>
+        {% if results %}
+            <div>
+                {% for person in results %}
+                    <div class="profile-item" style="display: flex; align-items: center;">
+                        <p style="margin: 0;"><strong>{{ person.username }}</strong></p>
+                        <button style="margin-left: auto; padding: 4px 12px;">View Profile</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: #666;">No users found matching that name.</p>
+        {% endif %}
+        
+    {% endif %}
+</div>
+{% endblock %}

@@ -14,12 +14,21 @@
             <aside class="sidebar">
                 <h1 class="logo-title">The Network</h1>
                 <nav class="sidebar-nav">
-                    <a href="{% url 'home' %}" class="nav-item">🏠 Home</a>
-                    <a href="{% url 'profile' %}" class="nav-item">👤 Profile</a>
-                    <a href="{% url 'messages' %}" class="nav-item">💬 Messages</a>
-                    <a href="{% url 'search' %}" class="nav-item">🔍 Search</a>
-                    <a href="{% url 'login' %}" class="nav-item">🔑 Log in</a>
-                    <a href="{% url 'registration' %}" class="nav-item">✨ Create Account</a>
+                    {% if request.user.is_authenticated %}
+                        <a href="{% url 'home' %}" class="nav-item">🏠 home</a>
+                        <a href="{% url 'profile' %}" class="nav-item">👤 Profile</a>
+                        <a href="{% url 'messages' %}" class="nav-item">💬 Messages</a>
+                        <a href="{% url 'search' %}" class="nav-item">🔍 Search</a>
+                        <form method="POST" action="{% url 'logout' %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-item" style="background: none; border: none; cursor: pointer; text-align: left; width: 100%; font: inherit; color: inherit;">
+                                🚪 Log out
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="nav-item">🔑 Log in</a>
+                        <a href="{% url 'registration' %}" class="nav-item">✨ Create Account</a>
+                    {% endif %}
                 </nav>
                 <div class="sidebar-footer">
                     <p>made by: Aloysius Altarejos</p>
@@ -47,11 +56,111 @@
                     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠄⠹⢅⣀⠹⠒⠊⠀⠀⠀⠠</p>
                 </div>
             </aside>
-            <h6>This project is all about creating an app with most of the functionalities of a social media app. </h6>
-            <main>
-                {% block content %}
-                <p>Welcome to the main homepage dashboard!</p>
-                {% endblock %}
+            <main style="flex-grow: 1; max-width: 600px; margin: 0 40px; width: 100%;">   
+                
+                <!-- CREATE POST BOX -->
+                <div style="border-bottom: 1px solid #e1e8ed; padding: 20px 0; margin-bottom: 20px; width: 100%;">
+                    <form method="POST" action="{% url 'home' %}">
+                        {% csrf_token %}
+                        <textarea name="content" placeholder="What's happening in your network?" rows="3" style="width: 100%; background: transparent; color: #0f1419; border: none; resize: none; outline: none; font-size: 1.1rem; font-family: inherit;" required></textarea>
+                        
+                        <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                            <button type="submit" style="background-color: #1a73e8; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold;">Post</button>
+                        </div>
+                    </form>
+                </div>
+            
+                <!-- YOUR EXISTING FEED LOOP -->
+                {% for post in posts %}
+                    <!-- INDIVIDUAL POST CONTAINER -->
+                    <div style="display: flex; gap: 15px; border-bottom: 1px solid #e1e8ed; padding: 20px 0; width: 100%;">
+                        
+                        <!-- LEFT COLUMN: Profile Avatar -->
+                        <div style="flex-shrink: 0;">
+                            {% if post.author.profile.profile_picture %}
+                                <img src="{{ post.author.profile.profile_picture.url }}" alt="Profile" style="width: 48px; height: 48px; border-radius: 4px; object-fit: cover;">
+                            {% else %}
+                                <!-- Fallback: Initial box -->
+                                <div style="width: 48px; height: 48px; border-radius: 4px; background-color: #f0f3f5; color: #1a73e8; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
+                                    {{ post.author.username.0|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    
+                        <!-- RIGHT COLUMN: Post Content -->
+                        <div style="flex-grow: 1; min-width: 0;">
+                        
+                            <!-- Post Header: Name, @Handle, Date, and Menu -->
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; width: 100%; position: relative;">
+                                
+                                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <strong style="color: #0f1419; margin-right: 5px;">{{ post.author.profile.name|default:post.author.username }}</strong> 
+                                    <span style="color: #536471; font-size: 0.95rem;">@{{ post.author.username }}</span>
+                                </div>
+                            
+                                <!-- Right side of header: Date and Menu Button -->
+                                <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                                    
+                                    <span style="color: #536471; font-size: 0.85rem;">
+                                        <!-- Shows a padlock icon if the post is currently hidden! -->
+                                        {% if post.is_hidden %}🔒 Hidden &bull; {% endif %}
+                                        {{ post.smart_date }}
+                                    </span>
+                                    
+                                    <!-- The Three Dots Button -->
+                                    <button onclick="toggleMenu('menu-{{ post.id }}')" style="background: none; border: none; cursor: pointer; color: #536471; font-size: 1.2rem; padding: 0 5px;">⋮</button>
+                                
+                                    <!-- The Dropdown Menu (Hidden by default) -->
+                                    <div id="menu-{{ post.id }}" style="display: none; position: absolute; right: 0; top: 25px; background: white; border: 1px solid #e1e8ed; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 5px 0; z-index: 100; min-width: 120px;">
+                                        
+                                        <!-- If it is YOUR post: Show Hide & Delete -->
+                                        {% if post.author == request.user %}
+                                            <form method="POST" action="{% url 'toggle_hide_post' post.id %}" style="margin: 0;">
+                                                {% csrf_token %}
+                                                <button type="submit" style="width: 100%; text-align: left; padding: 8px 15px; background: none; border: none; cursor: pointer; color: #0f1419; font-size: 0.9rem;">
+                                                    {% if post.is_hidden %}👁️ Unhide{% else %}🙈 Hide{% endif %}
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{% url 'delete_post' post.id %}" style="margin: 0;">
+                                                {% csrf_token %}
+                                                <button type="submit" style="width: 100%; text-align: left; padding: 8px 15px; background: none; border: none; cursor: pointer; color: #ff4444; font-size: 0.9rem;">
+                                                    🗑️ Delete
+                                                </button>
+                                            </form>
+                                        
+                                        <!-- If it is SOMEONE ELSE'S post: Show Report -->
+                                        {% else %}
+                                            <form method="POST" action="{% url 'report_post' post.id %}" style="margin: 0;">
+                                                {% csrf_token %}
+                                                <button type="submit" style="width: 100%; text-align: left; padding: 8px 15px; background: none; border: none; cursor: pointer; color: #ff9900; font-size: 0.9rem;">
+                                                    🚩 Report
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        
+                            <!-- The Text -->
+                            <p style="color: #0f1419; margin: 0 0 15px 0; line-height: 1.5; word-wrap: break-word;">
+                                {{ post.content }}
+                            </p>
+                        
+                            <!-- Action Footer (Likes / Dislikes) -->
+                            <div style="display: flex; gap: 30px; color: #536471; font-size: 0.9rem;">
+                                <div style="cursor: pointer; display: flex; gap: 5px; align-items: center;">
+                                    <span>👍</span> 
+                                    <span>{{ post.likes.count }}</span> 
+                                </div>
+                                <div style="cursor: pointer; display: flex; gap: 5px; align-items: center;">
+                                    <span>👎</span> 
+                                    <span>{{ post.dislikes.count }}</span>
+                                </div>
+                            </div>
+                        
+                        </div>
+                    </div>
+                {% endfor %}
             </main>
         </div>
     </body>

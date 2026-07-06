@@ -1,37 +1,12 @@
-{% extends "home.html" %}
+{% extends "baseEntrance.html" %}
 
-{% block content %}
-<div class="auth-container">
-    <h2>Create Your Account</h2>
-    
-    <form method="POST" id="registrationForm">
+{% block title %}Create Account - The Network{% endblock %}
+
+{% block auth_content %}
+    <h2>Create an Account</h2>
+    <form method="POST" id="registerForm">
         {% csrf_token %}
-        
         {{ form.as_p }}
-        
-        <button type="submit" id="submitBtn" disabled>Create Account</button>
+        <button type="submit" id="submitBtn">Sign Up</button>
     </form>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const form = document.getElementById("registrationForm");
-        const submitBtn = document.getElementById("submitBtn");
-        // Grab all input fields inside the form (ignoring the hidden security tokens)
-        const inputs = form.querySelectorAll("input:not([type='hidden'])");
-        function checkInputs() {
-            let allFilled = true;
-            // Loop through every input to see if it is empty
-            inputs.forEach(input => {
-                if (input.value.trim() === "") {
-                    allFilled = false;
-                }
-            });
-            submitBtn.disabled = !allFilled;
-        }
-        inputs.forEach(input => {
-            input.addEventListener("input", checkInputs);
-        });
-    });
-</script>
 {% endblock %}

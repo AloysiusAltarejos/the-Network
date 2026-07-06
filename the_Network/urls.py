@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from network import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,5 +27,14 @@ urlpatterns = [
     path('messages/', views.messages_view, name='messages'),
     path('search/', views.search_view, name='search'),
     path('registration/', views.registration_view, name='registration'),
-    path('login/', views.login_view, name='login')
+    path('login/', views.login_view, name='login'),
+    path('baseEntrance/', views.baseEntrance_view, name='baseEntrance'),
+    path('update-profile/', views.update_profile, name='update_profile'),
+    path('logout/', views.logout_view, name='logout'),
+    path('post/<int:post_id>/hide/', views.toggle_hide_post, name='toggle_hide_post'),
+    path('post/<int:post_id>/delete/', views.delete_post, name='delete_post'),
+    path('post/<int:post_id>/report/', views.report_post, name='report_post')
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

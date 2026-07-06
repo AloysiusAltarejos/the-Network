@@ -1,9 +1,112 @@
 {% extends "home.html" %}
 
 {% block content %}
-    <h2>User Profile</h2>
-    <div class="profile-card">
-        <h3>John Doe</h3>
-        <p>Status: Looking for connections</p>
+<div class="profile-card">
+    <div class="profile-name">
+        <p class="profile-name-text">{{ request.user.username }}'s Profile</p>
     </div>
+
+    <div class="profile-pic-container" style="text-align: center; margin-bottom: 20px;">
+        
+        {% if request.user.profile.profile_picture %}
+            <img src="{{ request.user.profile.profile_picture.url }}" alt="Profile Picture" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
+            <br>
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+                <button onclick="toggleEdit('picture')" id="picture-btn">Change Picture</button>
+                <form method="POST" action="{% url 'update_profile' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="field" value="remove_picture">
+                    <button type="submit" style="background-color: #ff4444; color: white; border: none;">Remove</button>
+                </form>
+            </div>
+        {% else %}
+            <div style="width: 150px; height: 150px; border-radius: 50%; background-color: #cccccc; margin: 0 auto;"></div>
+            <br>
+            <button onclick="toggleEdit('picture')" id="picture-btn" style="margin-top: 10px;">Add Picture</button>
+        {% endif %}
+        <form method="POST" action="{% url 'update_profile' %}" id="picture-form" enctype="multipart/form-data" style="display: none; margin-top: 10px;">
+            {% csrf_token %}
+            <input type="hidden" name="field" value="profile_picture">
+            <input type="file" name="image_upload" accept="image/*" required>
+            <button type="submit">Upload</button>
+            <button type="button" onclick="toggleEdit('picture')">Cancel</button>
+        </form>
+    </div>
+
+    <div class="profile-item">
+        <p>
+            <strong>Name:</strong> 
+            <span id="name-text">{{ request.user.profile.name|default:"No name" }}</span>
+            <button onclick="toggleEdit('name')" id="name-btn">Edit</button>
+        </p>
+        <form method="POST" action="{% url 'update_profile' %}" id="name-form" style="display: none;">
+            {% csrf_token %}
+            <input type="hidden" name="field" value="name"> 
+            <input type="text" name="value" value="{{ request.user.profile.name }}">
+            <button type="submit">Save</button>
+            <button type="button" onclick="toggleEdit('name')">Cancel</button>
+        </form>
+    </div>
+    <div class="profile-item">
+        <p>
+            <strong>Pronouns:</strong> 
+            <span id="pronouns-text">{{ request.user.profile.pronouns|default:"Not set" }}</span>
+            <button onclick="toggleEdit('pronouns')" id="pronouns-btn">Edit</button>
+        </p>
+        <form method="POST" action="{% url 'update_profile' %}" id="pronouns-form" style="display: none;">
+            {% csrf_token %}
+            <input type="hidden" name="field" value="pronouns">
+            <input type="text" name="value" value="{{ request.user.profile.pronouns }}">
+            <button type="submit">Save</button>
+            <button type="button" onclick="toggleEdit('pronouns')">Cancel</button>
+        </form>
+    </div>
+    <div class="profile-item">
+        <p>
+            <strong>Location:</strong> 
+            <span id="location-text">{{ request.user.profile.location|default:"Not set" }}</span>
+            <button onclick="toggleEdit('location')" id="location-btn">Edit</button>
+        </p>
+        <form method="POST" action="{% url 'update_profile' %}" id="location-form" style="display: none;">
+            {% csrf_token %}
+            <input type="hidden" name="field" value="location">
+            <input type="text" name="value" value="{{ request.user.profile.location }}">
+            <button type="submit">Save</button>
+            <button type="button" onclick="toggleEdit('location')">Cancel</button>
+        </form>
+    </div>
+    <div class="profile-item">
+        <p>
+            <strong>Bio:</strong> 
+            <span id="bio-text">{{ request.user.profile.bio|default:"Not set" }}</span>
+            <button onclick="toggleEdit('bio')" id="bio-btn">Edit</button>
+        </p>
+        <form method="POST" action="{% url 'update_profile' %}" id="bio-form" style="display: none;">
+            {% csrf_token %}
+            <input type="hidden" name="field" value="bio">
+            <input type="text" name="value" value="{{ request.user.profile.bio }}">
+            <button type="submit">Save</button>
+            <button type="button" onclick="toggleEdit('bio')">Cancel</button>
+        </form>
+    </div>
+</div>
+<script>
+    function toggleEdit(fieldName) {
+        const textSpan = document.getElementById(fieldName + '-text');
+        const editBtn = document.getElementById(fieldName + '-btn');
+        const form = document.getElementById(fieldName + '-form');
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            textSpan.style.display = 'none';
+            editBtn.style.display = 'none';
+        } else {
+            form.style.display = 'none';
+            textSpan.style.display = 'inline';
+            editBtn.style.display = 'inline';
+        }
+    }
+</script>
+
+
+
 {% endblock %}
