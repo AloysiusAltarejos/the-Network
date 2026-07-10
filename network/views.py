@@ -263,32 +263,47 @@ def postDetail(request, post_id):
 
 @login_required(login_url='login')
 def inbox(request):
-    active_users = User.objects.filter(Q(sent_messages__recipient=request.user) | Q(received_messages__sender=request.user)).distinct().exclude(id=request.user.id)
+    user_threads = request.user.threads.all().order_by('-updated_at')
     chat_data = []
-    for other_user in active_users:
-        last_message = Message.objects.filter(
-            Q(sender=request.user, recipient=other_user) |
-            Q(sender=other_user, recipient=request.user)
-        ).order_by('-created_at').first()
+    for thread in user_threads:
+        last_message = thread.messages.order_by('-created_at').first()
+        partner = None
+        if not thread.is_group:
+            partner = thread.participants.exclude(id=request.user.id).first()
+            if not partner:
+                partner = request.user
+        
         chat_data.append({
-            'partner': other_user,
+            'thread': thread,
+            'partner': partner,
             'last_message': last_message
         })
-    chat_data.sort(key=lambda x: x['last_message'].created_at if x['last_message'] else None, reverse=True)
+        
     return render(request, 'inbox.html', {'chat_data': chat_data})
 
 @login_required(login_url='login')
 def chat_thread(request, username):
     other_user = get_object_or_404(User, username=username)
-    Message.objects.filter(sender=other_user, recipient=request.user, is_read=False).update(is_read=True)
+    thread = request.user.threads.filter(is_group=False).filter(participants=other_user).first()
+    if not thread:
+        thread = Thread.objects.create(is_group=False)
+        thread.participants.add(request.user, other_user)
     if request.method == 'POST':
         content = request.POST.get('content')
         if content:
-            Message.objects.create(sender=request.user, recipient=other_user, content=content)
+            msg = Message.objects.create(thread=thread, sender=request.user, content=content)
+            msg.read_by.add(request.user)
+            thread.save()
             return redirect('chat_thread', username=username)
-    messages = Message.objects.filter(Q(sender=request.user, recipient=other_user) | Q(sender=other_user, recipient=request.user))
-
-    return render(request, 'messages.html', {'other_user': other_user, 'messages': messages})
+    messages = thread.messages.all()
+    unread_messages = messages.exclude(read_by=request.user)
+    for msg in unread_messages:
+        msg.read_by.add(request.user)
+    return render(request, 'messages.html', {
+        'other_user': other_user, 
+        'thread': thread,
+        'messages': messages
+    })
 
 @login_required(login_url='login')
 def delete_notification(request, notif_id):
@@ -360,3 +375,18 @@ def report_comment(request, comment_id):
     if request.user != comment.author:
         Report.objects.get_or_create(comment=comment, reported_by=request.user)
     return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+@login_required(login_url='login')
+def create_group_thread(request):
+    if request.method == 'POST':
+        user_ids = request.POST.getlist('users')
+        group_name = request.POST.get('group_name', 'New Group')
+
+        if user_ids:
+            thread = Thread.objects.create(is_group=True, name=group_name)
+            thread.participants.add(request.user) 
+            for uid in user_ids:
+                thread.participants.add(uid)
+            return redirect('chat_thread', thread_id=thread.id)
+            
+    return redirect('inbox')

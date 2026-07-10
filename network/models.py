@@ -129,15 +129,23 @@ class Comment(models.Model):
     def __str__(self):
         return f"Reply by {self.author.username} on Post {self.post.id}"
     
+class Thread(models.Model):
+    participants = models.ManyToManyField(User, related_name='threads')
+    is_group = models.BooleanField(default=False)
+    name = models.CharField(max_length=100, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name if self.is_group else f"Thread {self.id}"
+
 class Message(models.Model):
+    thread = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
     content = models.TextField(max_length=1000)
-    is_read = models.BooleanField(default=False)
+    read_by = models.ManyToManyField(User, related_name='read_messages', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['created_at'] 
-
     def __str__(self):
-        return f"{self.sender.username} to {self.recipient.username}"
+        return f"{self.sender.username} in Thread {self.thread.id}"

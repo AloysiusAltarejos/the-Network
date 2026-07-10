@@ -42,6 +42,7 @@ urlpatterns = [
     path('post/<int:post_id>/', views.postDetail, name='postDetail'),
     path('inbox/', views.inbox, name='inbox'),
     path('messages/<str:username>/', views.chat_thread, name='chat_thread'),
+    path('messages/create-group/', views.create_group_thread, name='create_group_thread'),
     path('notification/delete/<int:notif_id>/', views.delete_notification, name='delete_notification'),
     path('notification/clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
     path('comment/<int:comment_id>/like/', views.toggle_comment_like, name='toggle_comment_like'),
