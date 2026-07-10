@@ -41,15 +41,17 @@ urlpatterns = [
     path('profile/<str:username>/', views.profile_view, name='user_profile'),
     path('post/<int:post_id>/', views.postDetail, name='postDetail'),
     path('inbox/', views.inbox, name='inbox'),
-    path('messages/<str:username>/', views.chat_thread, name='chat_thread'),
     path('messages/create-group/', views.create_group_thread, name='create_group_thread'),
+    path('messages/group/<int:thread_id>/', views.group_chat_thread, name='group_chat_thread'),
+    path('messages/<str:username>/', views.chat_thread, name='chat_thread'),
     path('notification/delete/<int:notif_id>/', views.delete_notification, name='delete_notification'),
     path('notification/clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
     path('comment/<int:comment_id>/like/', views.toggle_comment_like, name='toggle_comment_like'),
     path('comment/<int:comment_id>/dislike/', views.toggle_comment_dislike, name='toggle_comment_dislike'),
     path('comment/<int:comment_id>/hide/', views.toggle_hide_comment, name='toggle_hide_comment'),
     path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
-    path('comment/<int:comment_id>/report/', views.report_comment, name='report_comment')
+    path('comment/<int:comment_id>/report/', views.report_comment, name='report_comment'),
+    path('messages/settings/<int:thread_id>/', views.thread_settings, name='thread_settings')
 ]
 
 if settings.DEBUG:

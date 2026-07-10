@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import dj_database_url
 
 
 from pathlib import Path
@@ -29,14 +30,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-8re@f+u3o4+f@2a6r6+28_-9mg4off&@u0ry_vshdlt7%$sa%8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Turns off the yellow error screens for the public
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'cloudinary_storage',
+    'django.contrib.staticfiles',
+    'cloudinary',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,8 +52,17 @@ INSTALLED_APPS = [
     'network',
 ]
 
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'your_cloud_name',
+    'API_KEY': 'your_api_key',
+    'API_SECRET': 'your_api_secret',
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -80,10 +95,10 @@ WSGI_APPLICATION = 'the_Network.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+        conn_max_age=600
+    )
 }
 
 

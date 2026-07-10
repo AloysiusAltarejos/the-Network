@@ -28,7 +28,16 @@ class Profile(models.Model):
                 img.save(self.profile_picture.path, quality=85)
     @property
     def unread_message_count(self):
-        return self.user.received_messages.filter(is_read=False).count()
+        from .models import Message
+        return Message.objects.filter(
+            thread__participants=self.user
+        ).exclude(
+            sender=self.user
+        ).exclude(
+            read_by=self.user
+        ).exclude(
+            thread__muted_by=self.user # NEW: Ignores messages if the user muted the thread!
+        ).count()
 
 class Post(models.Model):
     #authors details
@@ -134,9 +143,20 @@ class Thread(models.Model):
     is_group = models.BooleanField(default=False)
     name = models.CharField(max_length=100, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
+    muted_by = models.ManyToManyField(User, related_name='muted_threads', blank=True)
+    deleted_by = models.ManyToManyField(User, related_name='deleted_threads', blank=True)
+    group_picture = models.ImageField(upload_to='group_pics/', blank=True, null=True)
 
     def __str__(self):
         return self.name if self.is_group else f"Thread {self.id}"
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.group_picture:
+            img = Image.open(self.group_picture.path)
+            if img.height > 400 or img.width > 400:
+                output_size = (400, 400)
+                img.thumbnail(output_size)
+                img.save(self.group_picture.path, quality=85, optimize=True)
 
 class Message(models.Model):
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name='messages')
@@ -144,8 +164,25 @@ class Message(models.Model):
     content = models.TextField(max_length=1000)
     read_by = models.ManyToManyField(User, related_name='read_messages', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_system = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['created_at'] 
+
+    @property
+    def sender_display_name(self):
+        nickname_obj = self.thread.nicknames.filter(user=self.sender).first()
+        if nickname_obj:
+            return nickname_obj.nickname
+        return self.sender.profile.name if hasattr(self.sender, 'profile') and self.sender.profile.name else self.sender.username
+
     def __str__(self):
         return f"{self.sender.username} in Thread {self.thread.id}"
+
+class ThreadNickname(models.Model):
+    thread = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name='nicknames')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    nickname = models.CharField(max_length=50)
+
+    class Meta:
+        unique_together = ('thread', 'user')

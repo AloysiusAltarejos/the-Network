@@ -7,7 +7,7 @@ from requests import post, request
 from .forms import RegisterForm
 from django.db.models import Q 
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Profile, Post, Report, Notification, Comment, Message
+from .models import Profile, Post, Report, Notification, Comment, Message, Thread, ThreadNickname
 import re
 
 
@@ -263,22 +263,26 @@ def postDetail(request, post_id):
 
 @login_required(login_url='login')
 def inbox(request):
-    user_threads = request.user.threads.all().order_by('-updated_at')
+    user_threads = request.user.threads.exclude(deleted_by=request.user).order_by('-updated_at')
+    
     chat_data = []
     for thread in user_threads:
         last_message = thread.messages.order_by('-created_at').first()
+        
         partner = None
         if not thread.is_group:
             partner = thread.participants.exclude(id=request.user.id).first()
             if not partner:
                 partner = request.user
         
+        unread_count = thread.messages.exclude(sender=request.user).exclude(read_by=request.user).count()
+        
         chat_data.append({
             'thread': thread,
             'partner': partner,
-            'last_message': last_message
+            'last_message': last_message,
+            'unread_count': unread_count 
         })
-        
     return render(request, 'inbox.html', {'chat_data': chat_data})
 
 @login_required(login_url='login')
@@ -286,12 +290,15 @@ def chat_thread(request, username):
     other_user = get_object_or_404(User, username=username)
     thread = request.user.threads.filter(is_group=False).filter(participants=other_user).first()
     if not thread:
-        thread = Thread.objects.create(is_group=False)
-        thread.participants.add(request.user, other_user)
+        thread = Thread.objects.create(is_group=False, name="")
+        thread.participants.add(request.user)
+        thread.participants.add(other_user)
+        thread.save()
     if request.method == 'POST':
         content = request.POST.get('content')
         if content:
             msg = Message.objects.create(thread=thread, sender=request.user, content=content)
+            thread.deleted_by.clear()
             msg.read_by.add(request.user)
             thread.save()
             return redirect('chat_thread', username=username)
@@ -299,10 +306,12 @@ def chat_thread(request, username):
     unread_messages = messages.exclude(read_by=request.user)
     for msg in unread_messages:
         msg.read_by.add(request.user)
+    all_users = User.objects.exclude(id=request.user.id)
     return render(request, 'messages.html', {
         'other_user': other_user, 
         'thread': thread,
-        'messages': messages
+        'messages': messages,
+        'all_users': all_users
     })
 
 @login_required(login_url='login')
@@ -387,6 +396,95 @@ def create_group_thread(request):
             thread.participants.add(request.user) 
             for uid in user_ids:
                 thread.participants.add(uid)
-            return redirect('chat_thread', thread_id=thread.id)
+            return redirect('group_chat_thread', thread_id=thread.id)
             
     return redirect('inbox')
+            
+    return redirect('group_chat_thread', thread_id=thread.id)
+@login_required(login_url='login')
+def group_chat_thread(request, thread_id):
+    thread = get_object_or_404(Thread, id=thread_id, participants=request.user)
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:
+            msg = Message.objects.create(thread=thread, sender=request.user, content=content)
+            thread.deleted_by.clear()
+            msg.read_by.add(request.user)
+            thread.save()
+            return redirect('group_chat_thread', thread_id=thread.id)
+            
+    messages = thread.messages.all()
+    for msg in messages.exclude(read_by=request.user):
+        msg.read_by.add(request.user)
+        
+    all_users = User.objects.exclude(id=request.user.id)
+        
+    return render(request, 'messages.html', {
+        'thread': thread,
+        'messages': messages,
+        'all_users': all_users
+    })
+@login_required(login_url='login')
+def thread_settings(request, thread_id):
+    thread = get_object_or_404(Thread, id=thread_id, participants=request.user)
+    action = request.POST.get('action')
+
+    if request.method == 'POST':
+        if action == 'mute':
+            if request.user in thread.muted_by.all():
+                thread.muted_by.remove(request.user)
+            else:
+                thread.muted_by.add(request.user)
+
+        elif action == 'delete_me':
+            thread.deleted_by.add(request.user)
+            return redirect('inbox')
+
+        elif action == 'delete_both':
+            thread.delete()
+            return redirect('inbox')
+
+        elif action == 'kick' and thread.is_group:
+            target_user = get_object_or_404(User, id=request.POST.get('target_user_id'))
+            thread.participants.remove(target_user)
+            thread.deleted_by.add(target_user)
+            if thread.participants.count() == 0:
+                thread.delete()
+
+        elif action == 'add' and thread.is_group:
+            target_user = get_object_or_404(User, id=request.POST.get('target_user_id'))
+            thread.participants.add(target_user)
+            thread.deleted_by.remove(target_user) 
+
+        elif action == 'change_picture' and thread.is_group:
+            picture = request.FILES.get('group_picture')
+            if picture:
+                thread.group_picture = picture
+                thread.save()
+                Message.objects.create(thread=thread, sender=request.user, content=f"{request.user.username} changed the group profile picture.", is_system=True)
+
+        elif action == 'change_name' and thread.is_group:
+            new_name = request.POST.get('new_name')
+            if new_name:
+                thread.name = new_name
+                thread.save()
+                Message.objects.create(thread=thread, sender=request.user, content=f"{request.user.username} changed the group name to '{new_name}'.", is_system=True)
+
+        elif action == 'change_nickname':
+            target_user = get_object_or_404(User, id=request.POST.get('target_user_id'))
+            new_nickname = request.POST.get('nickname')
+            nn_obj, created = ThreadNickname.objects.get_or_create(thread=thread, user=target_user)
+            
+            if new_nickname:
+                nn_obj.nickname = new_nickname
+                nn_obj.save()
+                Message.objects.create(thread=thread, sender=request.user, content=f"{request.user.username} set @{target_user.username}'s nickname to '{new_nickname}'.", is_system=True)
+            else:
+                nn_obj.delete()
+                Message.objects.create(thread=thread, sender=request.user, content=f"{request.user.username} cleared @{target_user.username}'s nickname.", is_system=True)
+
+    if thread.is_group:
+        return redirect('group_chat_thread', thread_id=thread.id)
+    else:
+        other_user = thread.participants.exclude(id=request.user.id).first()
+        return redirect('chat_thread', username=other_user.username if other_user else request.user.username)
