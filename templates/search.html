@@ -1,26 +1,61 @@
-{% extends "home.html" %}
+{% extends "base.html" %}
+
 {% block content %}
-<div class="profile-card">
-    <h2>Search Users</h2>
-    <form method="GET" action="{% url 'search' %}" style="display: flex; gap: 10px; margin-bottom: 30px;">
-        <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Type a username..." required style="flex-grow: 1; padding: 8px;">
-        <button type="submit" style="padding: 8px 16px; cursor: pointer;">Search</button>
-    </form>
-    {% if query %}
-        <h3>Results for "{{ query }}"</h3>
-        {% if results %}
-            <div>
-                {% for person in results %}
-                    <div class="profile-item" style="display: flex; align-items: center;">
-                        <p style="margin: 0;"><strong>{{ person.username }}</strong></p>
-                        <button style="margin-left: auto; padding: 4px 12px;">View Profile</button>
-                    </div>
-                {% endfor %}
-            </div>
+<main style="flex-grow: 1; display: flex; flex-direction: column; width: 100%; align-items: stretch; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh;">
+    
+    <div style="padding: 20px 25px; border-bottom: 1px solid var(--border);">
+        <h2 style="margin: 0; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: var(--foreground);">Search Directory</h2>
+    </div>
+
+    <div style="padding: 25px; border-bottom: 1px solid var(--border); background-color: var(--muted);">
+        <form method="GET" action="{% url 'search' %}" style="display: flex; gap: 15px;">
+            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Locate user..." required style="flex-grow: 1; background: var(--background); padding: 12px; color: var(--foreground); border: 1px solid var(--border); outline: none; font-size: 1rem; font-family: inherit;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';">
+            <button type="submit" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 8px 24px; font-weight: bold; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--background)'; this.style.color='var(--foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--muted-foreground)';">
+                Scan
+            </button>
+        </form>
+    </div>
+
+    <div style="padding: 25px;">
+        {% if query %}
+            <h3 style="margin: 0 0 20px 0; color: var(--muted-foreground); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Results for "{{ query }}"</h3>
+            
+            {% if results %}
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    {% for person in results %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border: 1px solid var(--border); background-color: var(--background); transition: border-color 0.2s ease;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                            
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="width: 40px; height: 40px; flex-shrink: 0; background-color: var(--muted); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; overflow: hidden; font-weight: bold; font-family: monospace; color: var(--foreground); font-size: 1rem;">
+                                    {% if person.profile.profile_picture %}
+                                        <img src="{{ person.profile.profile_picture.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        {{ person.username.0|upper }}
+                                    {% endif %}
+                                </div>
+                                
+                                <div style="display: flex; flex-direction: column;">
+                                    <strong style="color: var(--foreground); font-size: 1.1rem;">
+                                        {{ person.profile.name|default:person.username }}
+                                    </strong>
+                                    <span style="color: var(--muted-foreground); font-size: 0.85rem;">
+                                        @{{ person.username }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <a href="{% url 'user_profile' person.username %}" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 6px 18px; font-weight: bold; letter-spacing: 1px; text-decoration: none; text-transform: uppercase; font-size: 0.75rem; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--muted)'; this.style.color='var(--foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--muted-foreground)';">
+                                Profile
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--muted-foreground); text-align: center; margin-top: 40px; font-style: italic;">No users found matching that query.</p>
+            {% endif %}
         {% else %}
-            <p style="color: #666;">No users found matching that name.</p>
+            <p style="color: var(--muted-foreground); text-align: center; margin-top: 40px; font-style: italic;">Awaiting search input...</p>
         {% endif %}
-        
-    {% endif %}
-</div>
+    </div>
+</main>
 {% endblock %}

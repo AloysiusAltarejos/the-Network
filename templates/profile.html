@@ -1,112 +1,186 @@
-{% extends "home.html" %}
+{% extends "base.html" %}
 
 {% block content %}
-<div class="profile-card">
-    <div class="profile-name">
-        <p class="profile-name-text">{{ request.user.username }}'s Profile</p>
+<main style="flex-grow: 1; display: flex; flex-direction: column; width: 100%; align-items: stretch; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh;">
+    
+    <div style="padding: 20px 25px; border-bottom: 1px solid var(--border);">
+        <h2 style="margin: 0; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: var(--foreground);">{{ target_user.username }}'s Profile</h2>
     </div>
 
-    <div class="profile-pic-container" style="text-align: center; margin-bottom: 20px;">
+    <div style="padding: 40px 25px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; text-align: center; background-color: var(--muted);">
         
-        {% if request.user.profile.profile_picture %}
-            <img src="{{ request.user.profile.profile_picture.url }}" alt="Profile Picture" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
-            <br>
-            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-                <button onclick="toggleEdit('picture')" id="picture-btn">Change Picture</button>
-                <form method="POST" action="{% url 'update_profile' %}">
+        <div style="width: 150px; height: 150px; flex-shrink: 0; background-color: var(--background); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; overflow: hidden; font-weight: bold; font-family: monospace; color: var(--foreground); font-size: 4rem; margin-bottom: 20px;">
+            {% if target_user.profile.profile_picture %}
+                <img src="{{ target_user.profile.profile_picture.url }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+                {{ target_user.username.0|upper }}
+            {% endif %}
+        </div>
+
+        {% if target_user == request.user %}
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button onclick="toggleEdit('picture')" id="picture-btn" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: all 0.2s ease;" onmouseover="this.style.color='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)'">
+                    {% if target_user.profile.profile_picture %}Change Picture{% else %}Add Picture{% endif %}
+                </button>
+                
+                {% if target_user.profile.profile_picture %}
+                <form method="POST" action="{% url 'update_profile' %}" style="margin: 0;">
                     {% csrf_token %}
                     <input type="hidden" name="field" value="remove_picture">
-                    <button type="submit" style="background-color: #ff4444; color: white; border: none;">Remove</button>
+                    <button type="submit" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: all 0.2s ease;" onmouseover="this.style.color='#ef4444'; this.style.borderColor='#ef4444'" onmouseout="this.style.color='var(--muted-foreground)'; this.style.borderColor='var(--muted-foreground)'">Remove</button>
                 </form>
+                {% endif %}
             </div>
-        {% else %}
-            <div style="width: 150px; height: 150px; border-radius: 50%; background-color: #cccccc; margin: 0 auto;"></div>
-            <br>
-            <button onclick="toggleEdit('picture')" id="picture-btn" style="margin-top: 10px;">Add Picture</button>
+
+            <form method="POST" action="{% url 'update_profile' %}" id="picture-form" enctype="multipart/form-data" style="display: none; gap: 10px; margin-bottom: 20px; flex-direction: column; align-items: center;">
+                {% csrf_token %}
+                <input type="hidden" name="field" value="profile_picture">
+                <input type="file" name="image_upload" accept="image/*" required style="color: var(--muted-foreground); font-size: 0.85rem; margin-bottom: 10px;">
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" style="background-color: var(--primary); color: var(--primary-foreground); border: 1px solid var(--primary); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Upload</button>
+                    <button type="button" onclick="toggleEdit('picture')" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Cancel</button>
+                </div>
+            </form>
         {% endif %}
-        <form method="POST" action="{% url 'update_profile' %}" id="picture-form" enctype="multipart/form-data" style="display: none; margin-top: 10px;">
-            {% csrf_token %}
-            <input type="hidden" name="field" value="profile_picture">
-            <input type="file" name="image_upload" accept="image/*" required>
-            <button type="submit">Upload</button>
-            <button type="button" onclick="toggleEdit('picture')">Cancel</button>
-        </form>
+
+        <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 25px; color: var(--muted-foreground); font-size: 0.9rem;">
+            <div><strong style="color: var(--foreground); font-size: 1.1rem;">{{ target_user.profile.following.count }}</strong> Following</div>
+            <div>|</div>
+            <div><strong style="color: var(--foreground); font-size: 1.1rem;">{{ target_user.profile.followers.count }}</strong> Followers</div>
+        </div>
+
+        {% if target_user != request.user %}
+            <div style="display: flex; gap: 15px;">
+                <form method="POST" action="{% url 'toggle_follow' target_user.username %}" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" 
+                        style="background-color: {% if request.user.profile in target_user.profile.followers.all %}transparent{% else %}var(--foreground){% endif %}; 
+                               color: {% if request.user.profile in target_user.profile.followers.all %}var(--muted-foreground){% else %}var(--background){% endif %}; 
+                               border: 1px solid {% if request.user.profile in target_user.profile.followers.all %}var(--muted-foreground){% else %}var(--foreground){% endif %}; 
+                               padding: 8px 24px; font-weight: bold; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; transition: all 0.2s ease;" 
+                        {% if request.user.profile in target_user.profile.followers.all %}
+                            onmouseover="this.style.color='#ef4444'; this.style.borderColor='#ef4444'" 
+                            onmouseout="this.style.color='var(--muted-foreground)'; this.style.borderColor='var(--muted-foreground)'"
+                        {% else %}
+                            onmouseover="this.style.backgroundColor='var(--primary)'; this.style.borderColor='var(--primary)'; this.style.color='var(--primary-foreground)'" 
+                            onmouseout="this.style.backgroundColor='var(--foreground)'; this.style.borderColor='var(--foreground)'; this.style.color='var(--background)'"
+                        {% endif %}>
+                        {% if request.user.profile in target_user.profile.followers.all %}
+                            Unfollow
+                        {% else %}
+                            Follow
+                        {% endif %}
+                    </button>
+                </form>
+                <a href="{% url 'chat_thread' target_user.username %}" style="background-color: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 8px 24px; font-weight: bold; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                    Message
+                </a>
+            </div>
+        {% endif %}
     </div>
 
-    <div class="profile-item">
-        <p>
-            <strong>Name:</strong> 
-            <span id="name-text">{{ request.user.profile.name|default:"No name" }}</span>
-            <button onclick="toggleEdit('name')" id="name-btn">Edit</button>
-        </p>
-        <form method="POST" action="{% url 'update_profile' %}" id="name-form" style="display: none;">
-            {% csrf_token %}
-            <input type="hidden" name="field" value="name"> 
-            <input type="text" name="value" value="{{ request.user.profile.name }}">
-            <button type="submit">Save</button>
-            <button type="button" onclick="toggleEdit('name')">Cancel</button>
-        </form>
+    <div style="padding: 25px;">
+        
+        <div style="display: flex; flex-direction: column; border-bottom: 1px solid var(--border); padding: 15px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="color: var(--muted-foreground); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Name</strong>
+                {% if target_user == request.user %}
+                    <button onclick="toggleEdit('name')" id="name-btn" style="background: none; border: none; color: var(--muted-foreground); cursor: pointer; font-size: 0.75rem; text-transform: uppercase; transition: color 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-foreground)'">Edit</button>
+                {% endif %}
+            </div>
+            <span id="name-text" style="color: var(--foreground); font-size: 1rem;">{{ target_user.profile.name|default:"Not set" }}</span>
+            {% if target_user == request.user %}
+                <form method="POST" action="{% url 'update_profile' %}" id="name-form" style="display: none; margin-top: 10px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="field" value="name"> 
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" name="value" value="{{ target_user.profile.name }}" style="flex-grow: 1; background: var(--background); padding: 8px 12px; color: var(--foreground); border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-family: inherit;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';">
+                        <button type="submit" style="background-color: var(--primary); color: var(--primary-foreground); border: 1px solid var(--primary); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Save</button>
+                        <button type="button" onclick="toggleEdit('name')" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Cancel</button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; border-bottom: 1px solid var(--border); padding: 15px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="color: var(--muted-foreground); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Pronouns</strong>
+                {% if target_user == request.user %}
+                    <button onclick="toggleEdit('pronouns')" id="pronouns-btn" style="background: none; border: none; color: var(--muted-foreground); cursor: pointer; font-size: 0.75rem; text-transform: uppercase; transition: color 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-foreground)'">Edit</button>
+                {% endif %}
+            </div>
+            <span id="pronouns-text" style="color: var(--foreground); font-size: 1rem;">{{ target_user.profile.pronouns|default:"Not set" }}</span>
+            {% if target_user == request.user %}
+                <form method="POST" action="{% url 'update_profile' %}" id="pronouns-form" style="display: none; margin-top: 10px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="field" value="pronouns"> 
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" name="value" value="{{ target_user.profile.pronouns }}" style="flex-grow: 1; background: var(--background); padding: 8px 12px; color: var(--foreground); border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-family: inherit;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';">
+                        <button type="submit" style="background-color: var(--primary); color: var(--primary-foreground); border: 1px solid var(--primary); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Save</button>
+                        <button type="button" onclick="toggleEdit('pronouns')" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Cancel</button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; border-bottom: 1px solid var(--border); padding: 15px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="color: var(--muted-foreground); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Location</strong>
+                {% if target_user == request.user %}
+                    <button onclick="toggleEdit('location')" id="location-btn" style="background: none; border: none; color: var(--muted-foreground); cursor: pointer; font-size: 0.75rem; text-transform: uppercase; transition: color 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-foreground)'">Edit</button>
+                {% endif %}
+            </div>
+            <span id="location-text" style="color: var(--foreground); font-size: 1rem;">{{ target_user.profile.location|default:"Not set" }}</span>
+            {% if target_user == request.user %}
+                <form method="POST" action="{% url 'update_profile' %}" id="location-form" style="display: none; margin-top: 10px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="field" value="location"> 
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" name="value" value="{{ target_user.profile.location }}" style="flex-grow: 1; background: var(--background); padding: 8px 12px; color: var(--foreground); border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-family: inherit;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';">
+                        <button type="submit" style="background-color: var(--primary); color: var(--primary-foreground); border: 1px solid var(--primary); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Save</button>
+                        <button type="button" onclick="toggleEdit('location')" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Cancel</button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; border-bottom: 1px solid var(--border); padding: 15px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="color: var(--muted-foreground); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Bio</strong>
+                {% if target_user == request.user %}
+                    <button onclick="toggleEdit('bio')" id="bio-btn" style="background: none; border: none; color: var(--muted-foreground); cursor: pointer; font-size: 0.75rem; text-transform: uppercase; transition: color 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-foreground)'">Edit</button>
+                {% endif %}
+            </div>
+            <span id="bio-text" style="color: var(--foreground); font-size: 1rem;">{{ target_user.profile.bio|default:"Not set" }}</span>
+            {% if target_user == request.user %}
+                <form method="POST" action="{% url 'update_profile' %}" id="bio-form" style="display: none; margin-top: 10px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="field" value="bio"> 
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" name="value" value="{{ target_user.profile.bio }}" style="flex-grow: 1; background: var(--background); padding: 8px 12px; color: var(--foreground); border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-family: inherit;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';">
+                        <button type="submit" style="background-color: var(--primary); color: var(--primary-foreground); border: 1px solid var(--primary); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Save</button>
+                        <button type="button" onclick="toggleEdit('bio')" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 6px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Cancel</button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
     </div>
-    <div class="profile-item">
-        <p>
-            <strong>Pronouns:</strong> 
-            <span id="pronouns-text">{{ request.user.profile.pronouns|default:"Not set" }}</span>
-            <button onclick="toggleEdit('pronouns')" id="pronouns-btn">Edit</button>
-        </p>
-        <form method="POST" action="{% url 'update_profile' %}" id="pronouns-form" style="display: none;">
-            {% csrf_token %}
-            <input type="hidden" name="field" value="pronouns">
-            <input type="text" name="value" value="{{ request.user.profile.pronouns }}">
-            <button type="submit">Save</button>
-            <button type="button" onclick="toggleEdit('pronouns')">Cancel</button>
-        </form>
-    </div>
-    <div class="profile-item">
-        <p>
-            <strong>Location:</strong> 
-            <span id="location-text">{{ request.user.profile.location|default:"Not set" }}</span>
-            <button onclick="toggleEdit('location')" id="location-btn">Edit</button>
-        </p>
-        <form method="POST" action="{% url 'update_profile' %}" id="location-form" style="display: none;">
-            {% csrf_token %}
-            <input type="hidden" name="field" value="location">
-            <input type="text" name="value" value="{{ request.user.profile.location }}">
-            <button type="submit">Save</button>
-            <button type="button" onclick="toggleEdit('location')">Cancel</button>
-        </form>
-    </div>
-    <div class="profile-item">
-        <p>
-            <strong>Bio:</strong> 
-            <span id="bio-text">{{ request.user.profile.bio|default:"Not set" }}</span>
-            <button onclick="toggleEdit('bio')" id="bio-btn">Edit</button>
-        </p>
-        <form method="POST" action="{% url 'update_profile' %}" id="bio-form" style="display: none;">
-            {% csrf_token %}
-            <input type="hidden" name="field" value="bio">
-            <input type="text" name="value" value="{{ request.user.profile.bio }}">
-            <button type="submit">Save</button>
-            <button type="button" onclick="toggleEdit('bio')">Cancel</button>
-        </form>
-    </div>
-</div>
+</main>
+
 <script>
     function toggleEdit(fieldName) {
         const textSpan = document.getElementById(fieldName + '-text');
         const editBtn = document.getElementById(fieldName + '-btn');
         const form = document.getElementById(fieldName + '-form');
         if (form.style.display === 'none') {
-            form.style.display = 'block';
-            textSpan.style.display = 'none';
-            editBtn.style.display = 'none';
+            form.style.display = 'flex';
+            if (textSpan) textSpan.style.display = 'none';
+            if (editBtn) editBtn.style.display = 'none';
         } else {
             form.style.display = 'none';
-            textSpan.style.display = 'inline';
-            editBtn.style.display = 'inline';
+            if (textSpan) textSpan.style.display = 'inline';
+            if (editBtn) editBtn.style.display = 'inline';
         }
     }
 </script>
-
-
-
 {% endblock %}

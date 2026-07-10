@@ -1,178 +1,134 @@
-{% load static %}
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="{% static 'style.css' %}">
-        <title>The Network</title>
-    </head>
-    <body>
-        <div class="app-layout">                
-            <button id="sidebarToggle" class="toggle-btns pinned-btn">🗺️</button>
-            <aside class="sidebar">
-                <h1 class="logo-title">The Network</h1>
-                <nav class="sidebar-nav">
-                    {% if request.user.is_authenticated %}
-                        <a href="{% url 'home' %}" class="nav-item">🏠 home</a>
-                        <a href="{% url 'profile' %}" class="nav-item">👤 Profile</a>
-                        <a href="{% url 'messages' %}" class="nav-item">💬 Messages</a>
-                        <a href="{% url 'search' %}" class="nav-item">🔍 Search</a>
-                        <form method="POST" action="{% url 'logout' %}" style="margin: 0;">
-                            {% csrf_token %}
-                            <button type="submit" class="nav-item" style="background: none; border: none; cursor: pointer; text-align: left; width: 100%; font: inherit; color: inherit;">
-                                🚪 Log out
-                            </button>
-                        </form>
+{% block content %}
+<main style="flex-grow: 1; display: flex; flex-direction: column; width: 100%; align-items: stretch; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh;">
+    <div style="border-bottom: 1px solid var(--border); padding: 25px; width: 100%; box-sizing: border-box;">
+        <div style="display: flex; gap: 15px;">
+            <div style="width: 48px; height: 48px; flex-shrink: 0; background-color: var(--muted); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; overflow: hidden; font-weight: bold; font-family: monospace; color: var(--primary-foreground); font-size: 1.2rem;">
+                {% if request.user.profile.profile_picture %}
+                    <img src="{{ request.user.profile.profile_picture.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                    {{ request.user.username.0|upper }}
+                {% endif %}
+            </div>
+
+            <form method="POST" action="{% url 'home' %}" enctype="multipart/form-data" style="flex-grow: 1; display: flex; flex-direction: column;">
+                {% csrf_token %}
+                <textarea 
+                    name="content" 
+                    placeholder="What's happening in your network?" 
+                    rows="2" 
+                    required
+                    style="width: 100%; background: transparent; border: none; color: var(--foreground); resize: none; outline: none; font-family: inherit; font-size: 1rem; margin-bottom: 15px;"
+                ></textarea>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 15px;">
+
+                    <div style="display: flex; align-items: center; gap: 15px; color: var(--muted-foreground); font-size: 1.2rem;">
+                        <label for="image-upload" style="cursor: pointer; margin: 0;" title="Attach a photo (Max 5 per account)">
+                            🖼️
+                        </label>
+                        <input type="file" id="image-upload" name="image" accept="image/png, image/jpeg" style="display: none;" onchange="document.getElementById('file-name').textContent = this.files[0] ? this.files[0].name : '';">
+
+                        <span id="file-name" style="font-size: 0.8rem; color: var(--primary);"></span>
+                    </div>
+
+                    <button type="submit" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 8px 24px; font-weight: bold; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--muted)'; this.style.color='var(--foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--muted-foreground)';">
+                        Send
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% for post in posts %}
+        <div style="display: flex; gap: 15px; border-bottom: 1px solid var(--border); padding: 25px; width: 100%; box-sizing: border-box; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='var(--muted)'" onmouseout="this.style.backgroundColor='transparent'">
+            <div style="width: 48px; height: 48px; flex-shrink: 0; background-color: var(--muted); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; overflow: hidden; font-weight: bold; font-family: monospace; color: var(--foreground); font-size: 1.2rem;">
+                <a href="{% url 'user_profile' post.author.username %}" style="text-decoration: none; color: inherit; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+                    {% if post.author.profile.profile_picture %}
+                        <img src="{{ post.author.profile.profile_picture.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
                     {% else %}
-                        <a href="{% url 'login' %}" class="nav-item">🔑 Log in</a>
-                        <a href="{% url 'registration' %}" class="nav-item">✨ Create Account</a>
+                        {{ post.author.username.0|upper }}
                     {% endif %}
-                </nav>
-                <div class="sidebar-footer">
-                    <p>made by: Aloysius Altarejos</p>
-                    <p>Pulished in 2026</p>
-                    <p>Copyright 2026 The Network</p>
-                    <p>All rights reserved</p>
-                </div>
-                <div class ="six-sevemn">
-                    <p class="sixSeven">⠀⠀⢀⠤⣂⣤⣬⣭⣭⣭⣔⡠⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-                    ⠀⠔⣵⣾⣿⣿⣿⢿⣿⣿⣿⣿⣎⢂⠀⢲⣤⣤⣤⣤⣀⣒⣒⣒⣒⣂⡠⠤⠤⣄
-                    ⠐⣾⣿⣿⣿⡏⣾⡿⢎⣛⣫⣭⣴⣾⠆⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢼
-                    ⡇⣿⣿⣿⣿⣟⡿⢀⣐⣻⣛⡩⢁⠀⠀⣘⣛⣛⡛⠿⠿⠿⢿⣿⣿⣿⣿⣿⢟⣾
-                    ⡇⣿⣿⣿⣿⣷⣾⣿⣿⣿⣿⣿⣶⡕⠄⠉⠛⠛⠛⠛⡻⣣⣾⣿⣿⣿⢟⣵⣿⠛
-                    ⠃⣿⣿⣿⣿⣿⢋⣥⠭⡻⣿⣿⣿⣿⡌⡄⠀⠀⠀⡐⣼⣿⣿⣿⡿⣣⣾⠏⠀⠀
-                    ⠨⢻⣿⣿⣿⣧⢻⠁⠀⠘⢸⣿⣿⣿⡇⣿⠀⠀⠌⣼⣿⣿⣿⡿⢱⣿⠃⠀⠀⠀
-                    ⠀⢦⢻⣿⣿⣿⣦⣐⣀⣊⣼⣿⣿⡿⢱⡿⠀⠰⣸⣿⣿⣿⣿⢣⣿⠃⠀⠀⠀⠀
-                    ⠀⠀⠣⣙⠿⣿⣿⣿⣿⣿⣿⠿⢛⣵⡿⠃⢀⢃⣿⣿⣿⣿⡟⣾⡇⠀⠀⠀⠀⠀
-                    ⠀⠀⠀⠈⠛⠶⣮⣭⣭⣴⣶⡿⠿⠋⠀⠀⢨⣘⣿⡻⠿⠿⢇⣿⠀⠀⠀⠀⠀⠀
-                    ⠀⠀⢀⠔⠒⠂⠠⠤⠭⡀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠛⠛⠛⠻⠃⠀⠀⠀⠀⠀⠀
-                    ⢀⠆⠁⠀⡄⠀⠀⠀⠀⠈⢂⠀⠀⠀⠀⠀⠀⠀⠀⢀⡤⠒⠁⠀⠀⠒⢤⡀⠀⠀
-                    ⠣⠤⢤⠞⠂⠀⣀⠰⠃⠀⠘⣆⢀⣀⠀⠀⠀⠀⢀⠎⠀⢠⡀⠀⠀⠀⢀⠀⠙⡀
-                    ⠀⠀⢸⠀⠈⠭⡀⢈⣡⠔⢶⠁⣹⢩⠃⠀⢀⠀⢸⠀⠀⠀⣑⣠⣤⠀⠙⡦⣀⠜
-                    ⠀⠀⠀⠣⠀⢂⠞⠱⠴⣈⡸⠰⢇⠘⠀⠰⡭⠷⢝⡤⣂⣄⠒⢤⡐⠀⠀⡇⠀⠀
-                    ⠀⠀⠀⠀⠱⠄⣀⢜⢁⡠⠥⠊⠀⠀⠀⠀⠡⡘⡄⠐⡂⠘⢌⡀⠉⠂⡸⠀⠀⠀
-                    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠄⠹⢅⣀⠹⠒⠊⠀⠀⠀⠠</p>
-                </div>
-            </aside>
-            <main style="flex-grow: 1; max-width: 600px; margin: 0 40px; width: 100%;">   
-                
-                <!-- CREATE POST BOX -->
-                <div style="border-bottom: 1px solid #e1e8ed; padding: 20px 0; margin-bottom: 20px; width: 100%;">
-                    <form method="POST" action="{% url 'home' %}">
-                        {% csrf_token %}
-                        <textarea name="content" placeholder="What's happening in your network?" rows="3" style="width: 100%; background: transparent; color: #0f1419; border: none; resize: none; outline: none; font-size: 1.1rem; font-family: inherit;" required></textarea>
-                        
-                        <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-                            <button type="submit" style="background-color: #1a73e8; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold;">Post</button>
-                        </div>
-                    </form>
-                </div>
-            
-                <!-- YOUR EXISTING FEED LOOP -->
-                {% for post in posts %}
-                    <!-- INDIVIDUAL POST CONTAINER -->
-                    <div style="display: flex; gap: 15px; border-bottom: 1px solid #e1e8ed; padding: 20px 0; width: 100%;">
-                        
-                        <!-- LEFT COLUMN: Profile Avatar -->
-                        <div style="flex-shrink: 0;">
-                            {% if post.author.profile.profile_picture %}
-                                <img src="{{ post.author.profile.profile_picture.url }}" alt="Profile" style="width: 48px; height: 48px; border-radius: 4px; object-fit: cover;">
-                            {% else %}
-                                <!-- Fallback: Initial box -->
-                                <div style="width: 48px; height: 48px; border-radius: 4px; background-color: #f0f3f5; color: #1a73e8; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
-                                    {{ post.author.username.0|upper }}
-                                </div>
-                            {% endif %}
-                        </div>
-                    
-                        <!-- RIGHT COLUMN: Post Content -->
-                        <div style="flex-grow: 1; min-width: 0;">
-                        
-                            <!-- Post Header: Name, @Handle, Date, and Menu -->
-                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; width: 100%; position: relative;">
-                                
-                                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    <strong style="color: #0f1419; margin-right: 5px;">{{ post.author.profile.name|default:post.author.username }}</strong> 
-                                    <span style="color: #536471; font-size: 0.95rem;">@{{ post.author.username }}</span>
-                                </div>
-                            
-                                <!-- Right side of header: Date and Menu Button -->
-                                <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-                                    
-                                    <span style="color: #536471; font-size: 0.85rem;">
-                                        <!-- Shows a padlock icon if the post is currently hidden! -->
-                                        {% if post.is_hidden %}🔒 Hidden &bull; {% endif %}
-                                        {{ post.smart_date }}
-                                    </span>
-                                    
-                                    <!-- The Three Dots Button -->
-                                    <button onclick="toggleMenu('menu-{{ post.id }}')" style="background: none; border: none; cursor: pointer; color: #536471; font-size: 1.2rem; padding: 0 5px;">⋮</button>
-                                
-                                    <!-- The Dropdown Menu (Hidden by default) -->
-                                    <div id="menu-{{ post.id }}" style="display: none; position: absolute; right: 0; top: 25px; background: white; border: 1px solid #e1e8ed; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 5px 0; z-index: 100; min-width: 120px;">
-                                        
-                                        <!-- If it is YOUR post: Show Hide & Delete -->
-                                        {% if post.author == request.user %}
-                                            <form method="POST" action="{% url 'toggle_hide_post' post.id %}" style="margin: 0;">
-                                                {% csrf_token %}
-                                                <button type="submit" style="width: 100%; text-align: left; padding: 8px 15px; background: none; border: none; cursor: pointer; color: #0f1419; font-size: 0.9rem;">
-                                                    {% if post.is_hidden %}👁️ Unhide{% else %}🙈 Hide{% endif %}
-                                                </button>
-                                            </form>
-                                            <form method="POST" action="{% url 'delete_post' post.id %}" style="margin: 0;">
-                                                {% csrf_token %}
-                                                <button type="submit" style="width: 100%; text-align: left; padding: 8px 15px; background: none; border: none; cursor: pointer; color: #ff4444; font-size: 0.9rem;">
-                                                    🗑️ Delete
-                                                </button>
-                                            </form>
-                                        
-                                        <!-- If it is SOMEONE ELSE'S post: Show Report -->
-                                        {% else %}
-                                            <form method="POST" action="{% url 'report_post' post.id %}" style="margin: 0;">
-                                                {% csrf_token %}
-                                                <button type="submit" style="width: 100%; text-align: left; padding: 8px 15px; background: none; border: none; cursor: pointer; color: #ff9900; font-size: 0.9rem;">
-                                                    🚩 Report
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                    </div>
-                                </div>
+                </a>
+            </div>
+            <div style="flex-grow: 1; min-width: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <a href="{% url 'user_profile' post.author.username %}" style="text-decoration: none; color: inherit;" onmouseover="this.querySelector('strong').style.textDecoration='underline'" onmouseout="this.querySelector('strong').style.textDecoration='none'">
+                            <strong style="color: var(--foreground); margin-right: 5px;">{{ post.author.profile.name|default:post.author.username }}</strong>
+                            <span style="color: var(--muted-foreground); font-size: 0.9rem;">@{{ post.author.username }}</span>
+                        </a>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center; flex-shrink: 0;">
+                        <span style="color: var(--muted-foreground); font-size: 0.85rem;">{{ post.smart_date }}</span>
+                        <div style="position: relative;">
+                            <button onclick="toggleOptionsMenu(event, 'post-options-{{ post.id }}')" style="background: none; border: none; color: var(--muted-foreground); cursor: pointer; font-size: 1.2rem; padding: 0 5px; line-height: 1;" onmouseover="this.style.color='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)'">
+                                ...
+                            </button>
+                            <div id="post-options-{{ post.id }}" class="options-dropdown">
+                                {% if request.user == post.author %}
+                                    <form method="POST" action="{% url 'toggle_hide_post' post.id %}" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit">{% if post.is_hidden %}Unhide{% else %}Hide{% endif %}</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'delete_post' post.id %}" style="margin: 0; border-top: 1px solid var(--border);">
+                                        {% csrf_token %}
+                                        <button type="submit" class="delete-btn">Delete</button>
+                                    </form>
+                                {% else %}
+                                    <form method="POST" action="{% url 'report_post' post.id %}" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="report-btn">Report</button>
+                                    </form>
+                                {% endif %}
                             </div>
-                        
-                            <!-- The Text -->
-                            <p style="color: #0f1419; margin: 0 0 15px 0; line-height: 1.5; word-wrap: break-word;">
-                                {{ post.content }}
-                            </p>
-                        
-                            <!-- Action Footer (Likes / Dislikes) -->
-                            <div style="display: flex; gap: 30px; color: #536471; font-size: 0.9rem;">
-                                <div style="cursor: pointer; display: flex; gap: 5px; align-items: center;">
-                                    <span>👍</span> 
-                                    <span>{{ post.likes.count }}</span> 
-                                </div>
-                                <div style="cursor: pointer; display: flex; gap: 5px; align-items: center;">
-                                    <span>👎</span> 
-                                    <span>{{ post.dislikes.count }}</span>
-                                </div>
-                            </div>
-                        
                         </div>
                     </div>
-                {% endfor %}
-            </main>
+                </div>
+                <p style="margin: 0 0 15px 0; line-height: 1.6; color: var(--foreground); word-wrap: break-word;">
+                    {{ post.content }}
+                </p>
+                {% if post.image %}
+                    <div style="margin-bottom: 15px; border: 1px solid var(--border); overflow: hidden;">
+                        <img src="{{ post.image.url }}" alt="Post image" style="width: 100%; max-height: 500px; object-fit: cover; display: block;">
+                    </div>
+                {% endif %}
+                <div style="display: flex; gap: 30px; color: var(--muted-foreground); font-size: 0.9rem; margin-top: 15px;">
+                    <form method="POST" action="{% url 'toggle_like' post.id %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" style="background: none; border: none; cursor: pointer; color: {% if request.user in post.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}; font: inherit; padding: 0; display: flex; align-items: center; gap: 8px; transition: color 0.3s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='{% if request.user in post.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}'">
+                            ❤︎ {{ post.likes.count }}
+                        </button>
+                    </form>
+                    <form method="POST" action="{% url 'toggle_dislike' post.id %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" style="background: none; border: none; cursor: pointer; color: {% if request.user in post.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}; font: inherit; padding: 0; display: flex; align-items: center; gap: 8px; transition: color 0.3s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='{% if request.user in post.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}'">
+                            🛇 {{ post.dislikes.count }}
+                        </button>
+                    </form>
+                    <a href="{% url 'postDetail' post.id %}" style="text-decoration: none; color: var(--muted-foreground); display: flex; align-items: center; gap: 8px; transition: color 0.3s ease;" onmouseover="this.style.color='#39FF14'" onmouseout="this.style.color='var(--muted-foreground)'">
+                        💬 Replies {{ post.comments.count }}
+                    </a>
+                </div>
+            </div>
         </div>
-    </body>
-</html>
+    {% endfor %}
+</main>
 
 <script>
-        document.addEventListener("DOMContentLoaded", function(){
-            const toggleBtn = document.getElementById("sidebarToggle");
-            const sidebar = document.querySelector(".sidebar");
-            toggleBtn.addEventListener("click", function(){
-                sidebar.classList.toggle("collapsed");
-            });
-        });
-    </script>
-</body>
+    function toggleMenu(menuId) {
+        const menu = document.getElementById(menuId);
+        const isCurrentlyVisible = menu.style.display === 'block';
+        document.querySelectorAll('[id^="menu-"]').forEach(el => el.style.display = 'none');
+        if (!isCurrentlyVisible) {
+            menu.style.display = 'block';
+        }
+    }
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('button') && !event.target.closest('[id^="menu-"]')) {
+            document.querySelectorAll('[id^="menu-"]').forEach(el => el.style.display = 'none');
+        }
+    });
+</script>
+
+{% endblock %}

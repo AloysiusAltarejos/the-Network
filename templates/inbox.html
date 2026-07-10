@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main style="flex-grow: 1; display: flex; flex-direction: column; width: 100%; border-left: 1px solid var(--border); border-right: 1px solid var(--border); height: calc(100vh - 65px); padding: 25px; box-sizing: border-box;">
+    <div style="width: 100%; display: flex; flex-direction: column; height: 100%;">
+        
+        <div style="padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 20px;">
+            <h2 style="margin: 0; color: var(--foreground); font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Your Messages</h2>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            {% for chat in chat_data %}
+                <div class="inbox-card" style="display: flex; align-items: center; padding: 15px; border: 1px solid var(--border); background-color: transparent; transition: background-color 0.2s ease; {% if not chat.last_message.is_read and chat.last_message.recipient == request.user %}border-left: 4px solid var(--primary); background-color: var(--muted);{% endif %}">  
+                    <a href="{% url 'user_profile' chat.partner.username %}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 15px; flex-shrink: 0;">
+                        <div style="width: 48px; height: 48px; background-color: var(--muted); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; overflow: hidden; font-weight: bold; font-family: monospace; color: var(--foreground); font-size: 1.2rem;">
+                            {% if chat.partner.profile.profile_picture %}
+                                <img src="{{ chat.partner.profile.profile_picture.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                {{ chat.partner.username.0|upper }}
+                            {% endif %}
+                        </div>
+                        <strong style="color: var(--foreground); font-size: 1.1rem; width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                            {{ chat.partner.profile.name|default:chat.partner.username }}
+                        </strong>
+                    </a>
+                    <a href="{% url 'chat_thread' chat.partner.username %}" style="text-decoration: none; color: inherit; flex-grow: 1; min-width: 0; display: block;"> 
+                        <div style="display: flex; justify-content: flex-end; margin-bottom: 2px;">
+                            <span style="color: var(--muted-foreground); font-size: 0.8rem;">{{ chat.last_message.created_at|timesince }} ago</span>
+                        </div>
+                        <div style="color: var(--muted-foreground); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ">
+                            {% if chat.last_message.sender == request.user %}
+                                <span style="font-weight: bold; color: var(--foreground);">Me:</span> 
+                            {% else %}
+                                <span style="font-weight: bold; color: var(--foreground);">{{ chat.partner.profile.name|default:chat.partner.username|truncatewords:1 }}:</span> 
+                            {% endif %}
+                            {{ chat.last_message.content }}
+                        </div>
+                    </a>
+                </div>
+            {% empty %}
+                <div style="text-align: center; color: var(--muted-foreground); margin-top: 40px;">
+                    <p style="font-size: 1.1rem; margin-bottom: 10px;">INBOX EMPTY</p>
+                    <p style="font-size: 0.9rem;">Go to someone's profile or search for a user to send your first message.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+
+<style>
+    .inbox-card:hover {
+        background-color: var(--muted) !important;
+    }
+</style>
+{% endblock %}

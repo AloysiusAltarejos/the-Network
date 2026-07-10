@@ -1,0 +1,192 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- for fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Share+Tech+Mono&family=Solway:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+        <!-- for fonts -->
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'style.css' %}">
+        <title>The Network</title>
+    </head>
+    <body style="font-family: 'Solway', 'Share Tech Mono'">
+        <nav class="top-navbar">
+            <button id="sidebarToggle" class="nav-toggle-btn">🗺️</button>
+            <h1 class="neon-title">The Network</h1>
+            {% if request.user.is_authenticated %}
+                <button id="activityToggle" class="nav-toggle-btn">🔔</button>
+            {% else %}
+                <div style="width: 30px;"></div> 
+            {% endif %}     
+        </nav>
+        <div class="app-layout">
+            <aside class="sidebar">
+                <h1 class="logo-title">The Network</h1>
+                <nav class="sidebar-nav">
+                    {% if request.user.is_authenticated %}
+                        <a href="{% url 'home' %}" class="nav-item">🏠 home</a>
+                        <a href="{% url 'profile' %}" class="nav-item">👤 Profile</a>
+                        <a href="{% url 'inbox' %}" class="nav-item " style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>💬 Messages</span>
+                            {% if request.user.profile.unread_message_count > 0 %}
+                                <span style="background-color: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 12px; font-weight: bold; min-width: 15px; text-align: center;">
+                                    {{ request.user.profile.unread_message_count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'search' %}" class="nav-item">🔍 Search</a>
+                        <div class="logout-btn">
+                            <form method="POST" action="{% url 'logout' %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-item logout-hover">
+                                    🚪 Log out
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="nav-item">🔑 Log in</a>
+                        <a href="{% url 'registration' %}" class="nav-item">✨ Create Account</a>
+                    {% endif %}
+                </nav>
+                <div class="sidebar-footer">
+                    <p>made by: Aloysius Altarejos</p>
+                    <p>Pulished in 2026</p>
+                    <p>Copyright 2026 The Network</p>
+                    <p>All rights reserved</p>
+                </div>
+                <div class ="six-sevemn">
+                    <p class="sixSeven">⠀⠀⢀⠤⣂⣤⣬⣭⣭⣭⣔⡠⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                    ⠀⠔⣵⣾⣿⣿⣿⢿⣿⣿⣿⣿⣎⢂⠀⢲⣤⣤⣤⣤⣀⣒⣒⣒⣒⣂⡠⠤⠤⣄
+                    ⠐⣾⣿⣿⣿⡏⣾⡿⢎⣛⣫⣭⣴⣾⠆⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢼
+                    ⡇⣿⣿⣿⣿⣟⡿⢀⣐⣻⣛⡩⢁⠀⠀⣘⣛⣛⡛⠿⠿⠿⢿⣿⣿⣿⣿⣿⢟⣾
+                    ⡇⣿⣿⣿⣿⣷⣾⣿⣿⣿⣿⣿⣶⡕⠄⠉⠛⠛⠛⠛⡻⣣⣾⣿⣿⣿⢟⣵⣿⠛
+                    ⠃⣿⣿⣿⣿⣿⢋⣥⠭⡻⣿⣿⣿⣿⡌⡄⠀⠀⠀⡐⣼⣿⣿⣿⡿⣣⣾⠏⠀⠀
+                    ⠨⢻⣿⣿⣿⣧⢻⠁⠀⠘⢸⣿⣿⣿⡇⣿⠀⠀⠌⣼⣿⣿⣿⡿⢱⣿⠃⠀⠀⠀
+                    ⠀⢦⢻⣿⣿⣿⣦⣐⣀⣊⣼⣿⣿⡿⢱⡿⠀⠰⣸⣿⣿⣿⣿⢣⣿⠃⠀⠀⠀⠀
+                    ⠀⠀⠣⣙⠿⣿⣿⣿⣿⣿⣿⠿⢛⣵⡿⠃⢀⢃⣿⣿⣿⣿⡟⣾⡇⠀⠀⠀⠀⠀
+                    ⠀⠀⠀⠈⠛⠶⣮⣭⣭⣴⣶⡿⠿⠋⠀⠀⢨⣘⣿⡻⠿⠿⢇⣿⠀⠀⠀⠀⠀⠀
+                    ⠀⠀⢀⠔⠒⠂⠠⠤⠭⡀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠛⠛⠛⠻⠃⠀⠀⠀⠀⠀⠀
+                    ⢀⠆⠁⠀⡄⠀⠀⠀⠀⠈⢂⠀⠀⠀⠀⠀⠀⠀⠀⢀⡤⠒⠁⠀⠀⠒⢤⡀⠀⠀
+                    ⠣⠤⢤⠞⠂⠀⣀⠰⠃⠀⠘⣆⢀⣀⠀⠀⠀⠀⢀⠎⠀⢠⡀⠀⠀⠀⢀⠀⠙⡀
+                    ⠀⠀⢸⠀⠈⠭⡀⢈⣡⠔⢶⠁⣹⢩⠃⠀⢀⠀⢸⠀⠀⠀⣑⣠⣤⠀⠙⡦⣀⠜
+                    ⠀⠀⠀⠣⠀⢂⠞⠱⠴⣈⡸⠰⢇⠘⠀⠰⡭⠷⢝⡤⣂⣄⠒⢤⡐⠀⠀⡇⠀⠀
+                    ⠀⠀⠀⠀⠱⠄⣀⢜⢁⡠⠥⠊⠀⠀⠀⠀⠡⡘⡄⠐⡂⠘⢌⡀⠉⠂⡸⠀⠀⠀
+                    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠄⠹⢅⣀⠹⠒⠊⠀⠀⠀⠠</p>
+                </div>
+            </aside>
+            <main>
+                    {% block content %}
+                    {% endblock %}
+
+            </main>
+            <aside class="right-sidebar" id="activitySidebar">
+                <div style="padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: baseline;">
+                    <h2 style="margin: 0; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: var(--foreground);">Activity</h2>
+                    {% if request.user.notifications.all %}
+                        <form method="POST" action="{% url 'clear_all_notifications' %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" style="background: none; border: none; color: var(--muted-foreground); font-size: 0.75rem; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: color 0.2s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--muted-foreground)'">
+                                Clear All
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    {% for notif in request.user.notifications.all %}
+                        <div class="notif-box {% if not notif.is_read %}unread{% endif %}" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; padding: 15px; border: 1px solid var(--border); background-color: var(--background); transition: background-color 0.2s ease;">
+                            <a href="
+                                {% if notif.notification_type == 'follow' or notif.notification_type == 'unfollow' %}
+                                    {% url 'user_profile' notif.sender.username %}
+                                {% elif notif.notification_type == 'message' %}
+                                    {% url 'chat_thread' notif.sender.username %}
+                                {% elif notif.post %}
+                                    {% url 'postDetail' notif.post.id %}{% if notif.comment %}#comment-{{ notif.comment.id }}{% endif %}
+                                {% else %}
+                                    #
+                                {% endif %}
+                            " style="text-decoration: none; color: inherit; flex-grow: 1;" onmouseover="this.parentNode.style.backgroundColor='var(--muted)'" onmouseout="this.parentNode.style.backgroundColor='var(--background)'">
+                                <div style="font-size: 0.95rem; color: var(--foreground); margin-bottom: 5px;">
+                                    {% if notif.notification_type == 'follow' %}
+                                        ➕👤📈 <strong>{{ notif.sender.username }}</strong> followed you.
+                                    {% elif notif.notification_type == 'unfollow' %}
+                                        💔 <strong>{{ notif.sender.username }}</strong> unfollowed you.
+                                    {% elif notif.notification_type == 'message' %}
+                                        💬 <strong>{{ notif.sender.username }}</strong> sent you a message.
+                                    {% elif notif.notification_type == 'comment' %}
+                                        📝 <strong>{{ notif.sender.username }}</strong> replied to your {% if notif.comment.parent %}reply{% else %}post{% endif %}.
+                                    {% elif notif.notification_type == 'like' %}
+                                        ❤︎⁠ <strong>{{ notif.sender.username }}</strong> liked your {% if notif.comment %}reply{% else %}post{% endif %}.
+                                    {% elif notif.notification_type == 'dislike' %}
+                                        😖👎 <strong>{{ notif.sender.username }}</strong> disliked your {% if notif.comment %}reply{% else %}post{% endif %}.
+                                    {% elif notif.notification_type == 'tag' %}
+                                        🫵 <strong>{{ notif.sender.username }}</strong> tagged you in a {% if notif.comment %}reply{% else %}post{% endif %}.
+                                    {% endif %}
+                                </div>
+                                <span style="font-size: 0.75rem; color: var(--muted-foreground);">{{ notif.created_at|timesince }} ago</span>
+                            </a>
+                        
+                            <form method="POST" action="{% url 'delete_notification' notif.id %}" style="margin: 0; flex-shrink: 0;">
+                                {% csrf_token %}
+                                <button type="submit" title="Delete notification" style="background: none; border: none; color: var(--muted-foreground); font-size: 1.2rem; cursor: pointer; padding: 0; transition: all 0.2s ease;" onmouseover="this.style.color='#ef4444'; this.style.textShadow='0 0 8px rgba(239, 68, 68, 0.6)';" onmouseout="this.style.color='var(--muted-foreground)'; this.style.textShadow='none';">
+                                    🗑
+                                </button>
+                            </form>
+                        
+                        </div>
+                    {% empty %}
+                        <p style="color: var(--muted-foreground); font-size: 0.85rem; text-align: center; margin-top: 20px; font-style: italic;">No new notifications.</p>
+                    {% endfor %}
+                </div>
+            </aside>
+        </div>
+    </body>
+</html>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+        const textBlocks = document.querySelectorAll('p[style*="word-wrap: break-word"]');
+        textBlocks.forEach(block =>{
+            let text = block.innerHTML;
+            const styledText = text.replace(/(^|\s)@(\w+)/g, '$1<a href="/profile/$2/" style="color: #1a73e8; font-weight: bold; text-decoration: none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">@$2</a>');
+            block.innerHTML = styledText;
+        });
+    });
+        document.addEventListener("DOMContentLoaded", function(){
+            const toggleBtn = document.getElementById("sidebarToggle");
+            const sidebar = document.querySelector(".sidebar");
+            toggleBtn.addEventListener("click", function(){
+                sidebar.classList.toggle("collapsed");
+            });
+            const activityToggleBtn = document.getElementById("activityToggle");
+            const activitySidebar = document.getElementById("activitySidebar");
+            if (activityToggleBtn && activitySidebar) {
+            activityToggleBtn.addEventListener("click", function(){
+                activitySidebar.classList.toggle("collapsed");
+            });
+            }
+        });
+        function toggleOptionsMenu(event, menuId){
+            event.preventDefault();
+            event.stopPropagation();
+            document.querySelectorAll('.options-dropdown').forEach(menu =>{
+                if (menu.id !== menuId) {
+                    menu.style.display = 'none';
+                }
+            });
+            const targetMenu = document.getElementById(menuId);
+            if(targetMenu.style.display === 'block'){
+                targetMenu.style.display = 'none';
+            } else{
+                targetMenu.style.display = 'block';
+            }
+        }
+        window.addEventListener('click', function(event){
+            document.querySelectorAll('.options-dropdown').forEach(menu =>{
+                menu.style.display = 'none';
+            });
+        });
+    </script>

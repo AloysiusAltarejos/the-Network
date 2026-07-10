@@ -1,20 +1,23 @@
-from .models import Profile
-from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
-from .forms import RegisterForm
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.contrib.auth.models import User
-from .models import Profile, Post
+from requests import post, request
+from .forms import RegisterForm
 from django.db.models import Q 
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Profile, Post, Report 
-
+from .models import Profile, Post, Report, Notification, Comment, Message
+import re
 
 
 @login_required(login_url='login')
-def profile_view(request):
-    return render(request, 'profile.html')
+def profile_view(request, username=None):
+    if username:
+        target_user = get_object_or_404(User, username=username)
+    else:
+        target_user = request.user
+    return render(request, 'profile.html', {'target_user': target_user})
 
 @login_required(login_url='login')
 def update_profile(request):
@@ -70,23 +73,50 @@ def search_view(request):
     query = request.GET.get('q') 
     results = []
     if query:
-        results = User.objects.filter(username__icontains=query)
+        results = User.objects.filter(
+            Q(username__icontains=query) | Q(profile__name__icontains=query)
+        ).distinct()
     return render(request, 'search.html', {'results': results, 'query': query})
 
 @login_required(login_url='login')
 def home_view(request):
     if request.method == "POST":
-        post_content = request.POST.get('content')
-        if post_content:
-            Post.objects.create(author=request.user, content=post_content)
-            return redirect('home')
-    all_posts = Post.objects.filter(
-        Q(is_hidden=False) | Q(author=request.user)
-    )
+        content = request.POST.get('content')
+        image = request.FILES.get('image')
+        if image:
+            photo_post_count = Post.objects.filter(
+                author=request.user, 
+                image__isnull=False
+            ).exclude(image='').count()
+            if photo_post_count >= 5:
+                messages.error(request, "Limit reached: You can only have 5 photo posts on your account.")
+                return redirect('home')
+        if content:
+            new_post = Post.objects.create(author=request.user, content=content, image=image)
+            tagged_usernames = re.findall(r'@(\w+)', content)
+            for tagged_name in tagged_usernames:
+                try:
+                    tagged_user = User.objects.get(username=tagged_name)
+                    if tagged_user != request.user:
+                        Notification.objects.create(
+                            recipient=tagged_user, 
+                            sender=request.user, 
+                            notification_type='tag',
+                            post=new_post
+                        )
+                except User.DoesNotExist:
+                    pass
+        return redirect('home')
+    all_posts = Post.objects.filter(Q(is_hidden=False) | Q(author=request.user)).order_by('-created_at')
     return render(request, 'home.html', {'posts': all_posts})
+
 @login_required(login_url='login')
 def messages_view(request):
     return render(request, 'messages.html')
+
+@login_required(login_url='login')
+def base_view(request):
+    return render(request, 'base.html')
 
 def baseEntrance_view(request):
     return render(request, 'baseEntrance.html')
@@ -116,3 +146,217 @@ def report_post(request, post_id):
     if request.user != post.author:
         Report.objects.get_or_create(post=post, reported_by=request.user)
     return redirect('home')
+
+#followers
+@login_required(login_url='login')
+def toggle_follow(request, username):
+    target_profile = get_object_or_404(Profile, user__username=username)
+    if request.user != target_profile.user:
+        if request.user.profile in target_profile.followers.all():
+            target_profile.followers.remove(request.user.profile)
+            Notification.objects.create(
+                recipient=target_profile.user, 
+                sender=request.user, 
+                notification_type='unfollow'
+            )
+        else:
+            target_profile.followers.add(request.user.profile)
+            Notification.objects.create(
+                recipient=target_profile.user, 
+                sender=request.user, 
+                notification_type='follow'
+            )
+    return redirect('user_profile', username=username)
+
+@login_required(login_url='login')
+def toggle_like(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.user in post.likes.all():
+        post.likes.remove(request.user)
+    else:
+        post.likes.add(request.user)
+        if request.user != post.author:
+            Notification.objects.create(
+                recipient=post.author, 
+                sender=request.user, 
+                notification_type='like',
+                post=post
+            )
+        post.dislikes.remove(request.user)
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+@login_required(login_url='login')
+def toggle_dislike(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.user in post.dislikes.all():
+        post.dislikes.remove(request.user)
+    else:
+        post.dislikes.add(request.user)
+        if request.user != post.author:
+            Notification.objects.create(
+                recipient=post.author, 
+                sender=request.user, 
+                notification_type='dislike',
+                post=post
+            )
+        post.likes.remove(request.user)
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+@login_required(login_url='login')
+def postDetail(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        parent_id = request.POST.get('parent_id')
+        if content:
+            parent_comment = None
+            if parent_id:
+                parent_comment = Comment.objects.get(id=parent_id)
+            new_comment = Comment.objects.create(
+                post=post, 
+                author=request.user, 
+                content=content,
+                parent=parent_comment
+            )
+            tagged_usernames = re.findall(r'@(\w+)', content)
+            for tagged_name in tagged_usernames:
+                try:
+                    tagged_user = User.objects.get(username=tagged_name)
+                    if tagged_user != request.user:
+                        Notification.objects.create(
+                            recipient=tagged_user, 
+                            sender=request.user, 
+                            notification_type='tag',
+                            post=post,
+                            comment=new_comment
+                        )
+                except User.DoesNotExist:
+                    pass
+            if parent_comment and request.user != parent_comment.author:
+                Notification.objects.create(
+                    recipient=parent_comment.author, 
+                    sender=request.user, 
+                    notification_type='comment',
+                    post=post,
+                    comment=new_comment
+                )
+            elif not parent_comment and request.user != post.author:
+                Notification.objects.create(
+                    recipient=post.author, 
+                    sender=request.user, 
+                    notification_type='comment',
+                    post=post,
+                    comment=new_comment
+                )
+            return redirect('postDetail', post_id=post.id)
+    all_comments = list(post.comments.all())
+    comment_indices = {comment.id: idx for idx, comment in enumerate(all_comments, start=1)}
+    for comment in all_comments:
+        comment.thread_index = comment_indices[comment.id]
+        if comment.parent_id:
+            comment.parent_index = comment_indices.get(comment.parent_id)
+    return render(request, 'postDetail.html', {
+        'post': post, 
+        'comments': all_comments
+    })
+
+
+@login_required(login_url='login')
+def inbox(request):
+    active_users = User.objects.filter(Q(sent_messages__recipient=request.user) | Q(received_messages__sender=request.user)).distinct().exclude(id=request.user.id)
+    chat_data = []
+    for other_user in active_users:
+        last_message = Message.objects.filter(
+            Q(sender=request.user, recipient=other_user) |
+            Q(sender=other_user, recipient=request.user)
+        ).order_by('-created_at').first()
+        chat_data.append({
+            'partner': other_user,
+            'last_message': last_message
+        })
+    chat_data.sort(key=lambda x: x['last_message'].created_at if x['last_message'] else None, reverse=True)
+    return render(request, 'inbox.html', {'chat_data': chat_data})
+
+@login_required(login_url='login')
+def chat_thread(request, username):
+    other_user = get_object_or_404(User, username=username)
+    Message.objects.filter(sender=other_user, recipient=request.user, is_read=False).update(is_read=True)
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:
+            Message.objects.create(sender=request.user, recipient=other_user, content=content)
+            return redirect('chat_thread', username=username)
+    messages = Message.objects.filter(Q(sender=request.user, recipient=other_user) | Q(sender=other_user, recipient=request.user))
+
+    return render(request, 'messages.html', {'other_user': other_user, 'messages': messages})
+
+@login_required(login_url='login')
+def delete_notification(request, notif_id):
+    if request.method == "POST":
+        notif = get_object_or_404(Notification, id=notif_id, recipient=request.user)
+        notif.delete()
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+@login_required(login_url='login')
+def clear_all_notifications(request):
+    if request.method == "POST":
+        Notification.objects.filter(recipient=request.user).delete()
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+@login_required(login_url='login')
+def toggle_comment_like(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user in comment.likes.all():
+        comment.likes.remove(request.user)
+    else:
+        comment.likes.add(request.user)
+        if request.user != comment.author:
+            Notification.objects.create(
+                recipient=comment.author, 
+                sender=request.user, 
+                notification_type='like',
+                post=comment.post,    
+                comment=comment
+            )
+        comment.dislikes.remove(request.user)
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+@login_required(login_url='login')
+def toggle_comment_dislike(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user in comment.dislikes.all():
+        comment.dislikes.remove(request.user)
+    else:
+        comment.dislikes.add(request.user)
+        if request.user != comment.author:
+            Notification.objects.create(
+                recipient=comment.author, 
+                sender=request.user, 
+                notification_type='dislike',
+                post=comment.post,
+                comment=comment
+            )
+        comment.likes.remove(request.user)
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+@login_required(login_url='login')
+def toggle_hide_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user == comment.author:
+        comment.is_hidden = not comment.is_hidden
+        comment.save()
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+@login_required(login_url='login')
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user == comment.author:
+        comment.delete()
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+@login_required(login_url='login')
+def report_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user != comment.author:
+        Report.objects.get_or_create(comment=comment, reported_by=request.user)
+    return redirect(request.META.get('HTTP_REFERER', 'home'))

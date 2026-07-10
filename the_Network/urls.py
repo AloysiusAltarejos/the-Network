@@ -33,7 +33,22 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('post/<int:post_id>/hide/', views.toggle_hide_post, name='toggle_hide_post'),
     path('post/<int:post_id>/delete/', views.delete_post, name='delete_post'),
-    path('post/<int:post_id>/report/', views.report_post, name='report_post')
+    path('post/<int:post_id>/report/', views.report_post, name='report_post'),
+    path('follow/<str:username>/', views.toggle_follow, name='toggle_follow'),
+    path('base/', views.base_view, name='base'),
+    path('post/<int:post_id>/like/', views.toggle_like, name='toggle_like'),
+    path('post/<int:post_id>/dislike/', views.toggle_dislike, name='toggle_dislike'),
+    path('profile/<str:username>/', views.profile_view, name='user_profile'),
+    path('post/<int:post_id>/', views.postDetail, name='postDetail'),
+    path('inbox/', views.inbox, name='inbox'),
+    path('messages/<str:username>/', views.chat_thread, name='chat_thread'),
+    path('notification/delete/<int:notif_id>/', views.delete_notification, name='delete_notification'),
+    path('notification/clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
+    path('comment/<int:comment_id>/like/', views.toggle_comment_like, name='toggle_comment_like'),
+    path('comment/<int:comment_id>/dislike/', views.toggle_comment_dislike, name='toggle_comment_dislike'),
+    path('comment/<int:comment_id>/hide/', views.toggle_hide_comment, name='toggle_hide_comment'),
+    path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
+    path('comment/<int:comment_id>/report/', views.report_comment, name='report_comment')
 ]
 
 if settings.DEBUG:

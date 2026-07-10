@@ -1,24 +1,76 @@
-{% extends "home.html" %}
+{% extends "base.html" %}
 
 {% block content %}
-    <h2>Your Inbox</h2>
-    <div class="inbox">
-        <p><strong>From Alice:</strong> Hey! Did you see my public post?</p>
-        <button id="replyBtn">Reply like an email</button>
-        <div id="replyBox" style="display: none; margin-top: 10px;">
-            <input type="text" placeholder="reply to your friend">
-            <button>➤</button>
+<main style="flex-grow: 1; display: flex; flex-direction: column; width: 100%; border-left: 1px solid var(--border); border-right: 1px solid var(--border); height: calc(100vh - 65px); padding: 25px; box-sizing: border-box;">
+    <div style="width: 100%; display: flex; flex-direction: column; height: 100%;">
+        
+        <div style="padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="width: 80px;">
+                <a href="{% url 'inbox' %}" style="text-decoration: none; color: var(--primary); font-weight: bold; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">← Inbox</a>
+            </div>
+            
+            <a href="{% url 'user_profile' other_user.username %}" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit;">
+                <div style="width: 44px; height: 44px; flex-shrink: 0; background-color: var(--muted); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; font-weight: bold; font-family: monospace; color: var(--foreground); font-size: 1.1rem;">
+                    {% if other_user.profile.profile_picture %}
+                        <img src="{{ other_user.profile.profile_picture.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        {{ other_user.username.0|upper }}
+                    {% endif %}
+                </div>
+                <div style="display: flex; flex-direction: column; text-align: left;">
+                    <strong style="font-size: 1.1rem; color: var(--foreground); line-height: 1.2;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                        {{ other_user.profile.name|default:other_user.username }}
+                    </strong>
+                    <span style="color: var(--muted-foreground); font-size: 0.85rem; line-height: 1.2; margin-top: 2px;">
+                        @{{ other_user.username }}
+                    </span>
+                </div>
+            </a>
+            
+            <div style="width: 80px;"></div> 
+        </div>
+
+        <div style="flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 10px; margin-bottom: 20px;">
+            {% for msg in messages %}
+                {% if msg.sender == request.user %}
+                    <div style="align-self: flex-end; max-width: 60%;">
+                        <div style="background-color: var(--primary); color: var(--primary-foreground); padding: 12px 16px; border: 1px solid var(--primary); font-size: 0.95rem; line-height: 1.5;">
+                            {{ msg.content }}
+                        </div>
+                        <div style="text-align: right; font-size: 0.75rem; color: var(--muted-foreground); margin-top: 6px;">
+                            {% if msg.is_read %}
+                                <span style="color: #00ba7c;">✓✓ Seen</span>
+                            {% else %}
+                                ✓ Delivered
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div style="align-self: flex-start; max-width: 60%;">
+                        <div style="background-color: var(--muted); color: var(--foreground); padding: 12px 16px; border: 1px solid var(--border); font-size: 0.95rem; line-height: 1.5;">
+                            {{ msg.content }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <p style="text-align: center; color: var(--muted-foreground); margin-top: 50px;">No messages yet. Say hello!</p>
+            {% endfor %}
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 15px;">
+            <form method="POST" action="{% url 'chat_thread' other_user.username %}" style="display: flex; gap: 10px;">
+                {% csrf_token %}
+                <input type="text" name="content" placeholder="Type a message..." required style="flex-grow: 1; padding: 12px 15px; background-color: transparent; color: var(--foreground); border: 1px solid var(--border); outline: none; font-size: 0.95rem; font-family: inherit; transition: border-color 0.2s ease;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';">
+                
+                <button type="submit" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 10px 24px; font-weight: bold; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--muted)'; this.style.color='var(--foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--muted-foreground)';">
+                    Send
+                </button>
+            </form>
         </div>
     </div>
-    <script>
-        const button = document.getElementById('replyBtn');
-        const replyBox = document.getElementById('replyBox');
-        button.addEventListener('click', () => {
-            if (replyBox.style.display === 'none') {
-                replyBox.style.display = 'block';
-            } else {
-                replyBox.style.display = 'none'; //this is gonna be a submit button in the future, but for now it just hides the text box when clicked again
-            }
-        });
-    </script>
+</main>
+<script>
+    const chatLog = document.querySelector('div[style*="overflow-y: auto"]');
+    chatLog.scrollTop = chatLog.scrollHeight;
+</script>
 {% endblock %}
