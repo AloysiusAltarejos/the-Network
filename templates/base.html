@@ -150,6 +150,58 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function(){
+        //left bar nav
+        const toggleBtn = document.getElementById("sidebarToggle");
+        const sidebar = document.querySelector(".sidebar");
+        const backdrop = document.getElementById("sidebarBackdrop");
+        if(toggleBtn && sidebar){
+            toggleBtn.addEventListener("click", function(){
+                if(window.innerWidth <= 768){
+                const isOpening = !sidebar.classList.contains("mobile-open");
+                closeAllSidebars();
+                    if (isOpening) {
+                        sidebar.classList.add("mobile-open");
+                        backdrop.classList.add("active");
+                    }
+                } else{
+                    sidebar.classList.toggle("collapsed");
+                }
+            });
+        }
+
+        //close
+        function closeAllSidebars() {
+            if (sidebar) sidebar.classList.remove("mobile-open");
+            if (activitySidebar) activitySidebar.classList.remove("mobile-open");
+            if (backdrop) backdrop.classList.remove("active");
+        }
+        
+        //close the sidebar using backdrop
+        if(backdrop){
+            backdrop.addEventListener("click", closeAllSidebars);
+        }
+    
+        // Listen for a tap on the backdrop
+        if(backdrop){
+            backdrop.addEventListener("click", closeAllSidebars);
+        }
+        //right bar activity
+        const activityToggleBtn = document.getElementById("activityToggle");
+        const activitySidebar = document.getElementById("activitySidebar");
+        if (activityToggleBtn && activitySidebar){
+            activityToggleBtn.addEventListener("click", function(){
+                if(window.innerWidth <= 768){
+                    const isOpening = !activitySidebar.classList.contains("mobile-open");
+                    closeAllSidebars();
+                    if (isOpening) {
+                        activitySidebar.classList.add("mobile-open");
+                        backdrop.classList.add("active");
+                    }
+                } else{
+                    activitySidebar.classList.toggle("collapsed");
+                }
+            });
+        }
         const textBlocks = document.querySelectorAll('p[style*="word-wrap: break-word"]');
         textBlocks.forEach(block =>{
             let text = block.innerHTML;
@@ -157,63 +209,24 @@
             block.innerHTML = styledText;
         });
     });
-        document.addEventListener("DOMContentLoaded", function(){
-            //left bar nav
-            const toggleBtn = document.getElementById("sidebarToggle");
-            const sidebar = document.querySelector(".sidebar");
-            const backdrop = document.getElementById("sidebarBackdrop");
-            toggleBtn.addEventListener("click", function(){
-                if(window.innerWidth <= 768){
-                    sidebar.classList.toggle("mobile-open");
-                } else{
-                    sidebar.classList.toggle("collapsed");
-                }
-            });
-
-            //close
-            function closeAllSidebars(){
-                sidebar.classList.remove("mobile-open");
-                if (activitySidebar) activitySidebar.classList.remove("mobile-open");
-                backdrop.classList.remove("active");
-            }
-        
-            // Listen for a tap on the backdrop
-            if (backdrop) {
-                backdrop.addEventListener("click", closeAllSidebars);
-            }
-            //right bar activity
-            const activityToggleBtn = document.getElementById("activityToggle");
-            const activitySidebar = document.getElementById("activitySidebar");
-            if (activityToggleBtn && activitySidebar){
-                 activityToggleBtn.addEventListener("click", function(){
-                    if(window.innerWidth <= 768){
-                        activitySidebar.classList.toggle("mobile-open");
-                        backdrop.classList.toggle("active"); // Show/hide backdrop
-                    sidebar.classList.remove("mobile-open"); // Close the left one if it's open
-                    }else{
-                        activitySidebar.classList.toggle("collapsed");
-                    }
-                });
-            }
-        });
-        function toggleOptionsMenu(event, menuId){
-            event.preventDefault();
-            event.stopPropagation();
-            document.querySelectorAll('.options-dropdown').forEach(menu =>{
-                if (menu.id !== menuId) {
-                    menu.style.display = 'none';
-                }
-            });
-            const targetMenu = document.getElementById(menuId);
-            if(targetMenu.style.display === 'block'){
-                targetMenu.style.display = 'none';
-            } else{
-                targetMenu.style.display = 'block';
-            }
-        }
-        window.addEventListener('click', function(event){
-            document.querySelectorAll('.options-dropdown').forEach(menu =>{
+    function toggleOptionsMenu(event, menuId){
+        event.preventDefault();
+        event.stopPropagation();
+        document.querySelectorAll('.options-dropdown').forEach(menu =>{
+            if (menu.id !== menuId) {
                 menu.style.display = 'none';
-            });
+            }
         });
-    </script>
+        const targetMenu = document.getElementById(menuId);
+        if(targetMenu.style.display === 'block'){
+            targetMenu.style.display = 'none';
+        } else{
+            targetMenu.style.display = 'block';
+        }
+    }
+    window.addEventListener('click', function(event){
+        document.querySelectorAll('.options-dropdown').forEach(menu =>{
+            menu.style.display = 'none';
+        });
+    });
+</script>
