@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Profile, Post, Report, Notification, Comment, Message, Thread, ThreadNickname
 import re
+from django.core.paginator import Paginator
 
 
 @login_required(login_url='login')
@@ -80,6 +81,10 @@ def search_view(request):
 
 @login_required(login_url='login')
 def home_view(request):
+    post_list = Post.objects.all().order_by('-created_at')
+    paginator = Paginator(post_list, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     if request.method == "POST":
         content = request.POST.get('content')
         image = request.FILES.get('image')
@@ -108,7 +113,7 @@ def home_view(request):
                     pass
         return redirect('home')
     all_posts = Post.objects.filter(Q(is_hidden=False) | Q(author=request.user)).order_by('-created_at')
-    return render(request, 'home.html', {'posts': all_posts})
+    return render(request, 'home.html', {'page_obj': page_obj})
 
 @login_required(login_url='login')
 def messages_view(request):
@@ -302,15 +307,16 @@ def chat_thread(request, username):
             msg.read_by.add(request.user)
             thread.save()
             return redirect('chat_thread', username=username)
-    messages = thread.messages.all()
-    unread_messages = messages.exclude(read_by=request.user)
+    unread_messages = thread.messages.exclude(read_by=request.user)
     for msg in unread_messages:
         msg.read_by.add(request.user)
     all_users = User.objects.exclude(id=request.user.id)
+    recent_messages = thread.messages.all().order_by('-created_at')[:20]
+    messages_to_display = reversed(recent_messages)
     return render(request, 'messages.html', {
         'other_user': other_user, 
         'thread': thread,
-        'messages': messages,
+        'messages': messages_to_display,
         'all_users': all_users
     })
 

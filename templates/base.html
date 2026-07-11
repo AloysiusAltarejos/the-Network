@@ -14,6 +14,7 @@
         <title>The 67th</title>
     </head>
     <body style="font-family: 'Solway', 'Share Tech Mono'">
+        <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
         <nav class="top-navbar">
             <button id="sidebarToggle" class="nav-toggle-btn">🗺️</button>
             <h1 class="neon-title">The 67th Network</h1>
@@ -157,17 +158,42 @@
         });
     });
         document.addEventListener("DOMContentLoaded", function(){
+            //left bar nav
             const toggleBtn = document.getElementById("sidebarToggle");
             const sidebar = document.querySelector(".sidebar");
+            const backdrop = document.getElementById("sidebarBackdrop");
             toggleBtn.addEventListener("click", function(){
-                sidebar.classList.toggle("collapsed");
+                if(window.innerWidth <= 768){
+                    sidebar.classList.toggle("mobile-open");
+                } else{
+                    sidebar.classList.toggle("collapsed");
+                }
             });
+
+            //close
+            function closeAllSidebars(){
+                sidebar.classList.remove("mobile-open");
+                if (activitySidebar) activitySidebar.classList.remove("mobile-open");
+                backdrop.classList.remove("active");
+            }
+        
+            // Listen for a tap on the backdrop
+            if (backdrop) {
+                backdrop.addEventListener("click", closeAllSidebars);
+            }
+            //right bar activity
             const activityToggleBtn = document.getElementById("activityToggle");
             const activitySidebar = document.getElementById("activitySidebar");
-            if (activityToggleBtn && activitySidebar) {
-            activityToggleBtn.addEventListener("click", function(){
-                activitySidebar.classList.toggle("collapsed");
-            });
+            if (activityToggleBtn && activitySidebar){
+                 activityToggleBtn.addEventListener("click", function(){
+                    if(window.innerWidth <= 768){
+                        activitySidebar.classList.toggle("mobile-open");
+                        backdrop.classList.toggle("active"); // Show/hide backdrop
+                    sidebar.classList.remove("mobile-open"); // Close the left one if it's open
+                    }else{
+                        activitySidebar.classList.toggle("collapsed");
+                    }
+                });
             }
         });
         function toggleOptionsMenu(event, menuId){

@@ -34,7 +34,14 @@ SECRET_KEY = 'django-insecure-8re@f+u3o4+f@2a6r6+28_-9mg4off&@u0ry_vshdlt7%$sa%8
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 
-ALLOWED_HOSTS = ['67th.aloysius-altz.com', 'web-production-a31ea.up.railway.app']
+ALLOWED_HOSTS = [
+    '67th.aloysius-altz.com', 
+    'web-production-a31ea.up.railway.app',
+    '127.0.0.1',                           
+    'localhost',
+    ]
+
+LOGIN_URL = '/login/'
 
 
 # Application definition

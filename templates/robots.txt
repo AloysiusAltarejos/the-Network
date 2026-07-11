@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /messages/
+Disallow: /inbox/
+Disallow: /registration/

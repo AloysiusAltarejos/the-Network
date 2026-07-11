@@ -19,8 +19,11 @@ from django.urls import path
 from network import views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 urlpatterns = [
+    path('robots.txt', TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
+    path('', views.login_view, name='index'),
     path('admin/', admin.site.urls),
     path('home/', views.home_view, name='home'),
     path('profile/', views.profile_view, name='profile'),

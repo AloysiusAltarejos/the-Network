@@ -73,7 +73,7 @@ main {
 }
 
 .nav-toggle-btn:hover {
-    transform: scale(1.1); 
+    transform: scale(2.0); 
 }
 
 /* =========================================
@@ -337,43 +337,75 @@ button {
     cursor: not-allowed;
 }
 
-/* =========================================
-   7. RESPONSIVE DESIGN (MEDIA QUERIES)
-========================================= */
-@media (max-width: 1000px) {
-    .right-sidebar {
-        display: none; 
-    }
-}
 
+
+/* =========  7. RESPONSIVE DESIGN (for mobile and other screens)  ================*/
 @media (max-width: 768px) {
+
+    html {
+        font-size: 14px;
+    }
+
     .app-layout {
-        flex-direction: column; 
+        flex-direction: column;
     }
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        padding: 20px;
+
+    .sidebar, .right-sidebar {
+        position: fixed !important;
+        width: 75% !important;
+        max-width: 320px !important;
+        z-index: 999 !important;
+        transition: transform 0.3s ease-in-out !important;
+        opacity: 1 !important;
+        background-color: var(--background) !important;
+        border: none !important;
+        box-shadow: 0 0 25px rgba(0,0,0,0.8) !important;
+        margin: 0 !important;
+        flex: none;
+        height: 100vh;
         top: 0;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
     }
-    .sidebar-nav {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
+
+    .sidebar {
+        left: 0 !important;
+        transform: translateX(-105%) !important;
     }
-    .nav-item {
-        padding: 8px 12px;
-        font-size: 18px;
+
+    .right-sidebar {
+        right: 0 !important;
+        transform: translateX(105%) !important;
     }
-    .logo-title {
-        text-align: center;
-        margin-bottom: 15px;
+
+    .sidebar.mobile-open, .right-sidebar.mobile-open {
+        transform: translateX(0) !important;
     }
+
+    .sidebar.collapsed {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
     main {
-        padding: 15px 10px;
+        width: 100% !important;
+        padding: 10px !important;
+    }
+
+    .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 900;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .sidebar-backdrop.active {
+        display: block;
+        opacity: 1;
     }
 }
