@@ -1,1 +1,1 @@
-eb: gunicorn the_Network.wsgi --log-file - --max-requests 1000 --max-requests-jitter 50
+web: gunicorn the_Network.wsgi --log-file - --max-requests 1000 --max-requests-jitter 50
