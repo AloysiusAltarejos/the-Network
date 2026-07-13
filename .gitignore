@@ -1,4 +1,14 @@
-*.sqlite3
+db.sqlite3
+
+media/
+media/*
+
+
 __pycache__/
 *.pyc
-.DS_Store
+.venv/
+venv/
+env/
+
+
+.env
