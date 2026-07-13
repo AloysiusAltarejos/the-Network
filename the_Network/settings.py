@@ -72,9 +72,14 @@ INSTALLED_APPS = [
     'network',
 ]
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.StaticFilesStorage",
+    },
+}
 
 CSRF_TRUSTED_ORIGINS = ['https://67th.aloysius-altz.com']
 
