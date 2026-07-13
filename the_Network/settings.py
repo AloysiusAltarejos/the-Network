@@ -33,7 +33,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "replace-this-in-production")
 # Turns off the yellow error screens for the public
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
