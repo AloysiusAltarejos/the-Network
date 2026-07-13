@@ -33,15 +33,6 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "replace-this-in-production")
 # Turns off the yellow error screens for the public
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
-
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
@@ -81,6 +72,9 @@ INSTALLED_APPS = [
     'network',
 ]
 
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CSRF_TRUSTED_ORIGINS = ['https://67th.aloysius-altz.com']
 
