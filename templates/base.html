@@ -16,35 +16,62 @@
     <body style="font-family: 'Solway', 'Share Tech Mono'">
         <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
         <nav class="top-navbar">
-            <button id="sidebarToggle" class="nav-toggle-btn">🗺️</button>
-            <h1 class="neon-title">The 67th Network</h1>
+            <button id="sidebarToggle" class="nav-toggle-btn" style="background: transparent; border: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">✵</button>
+            <h1 class="neon-title">
+                <a href="{% url 'home' %}" style="text-decoration: none; color: inherit;">The 67th Network</a>
+            </h1>
             {% if request.user.is_authenticated %}
-                <button id="activityToggle" class="nav-toggle-btn">🔔</button>
+                <button id="activityToggle" class="nav-toggle-btn" style="background: transparent; border: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">🕭</button>
             {% else %}
-                <div style="width: 30px;"></div> 
-            {% endif %}     
+                <div style="width: 15px; flex-shrink: 0;"></div> 
+            {% endif %}   
         </nav>
+
+        <!-- floating error for inserting a big image file -->
+        {% if messages %}
+            <div style="position: fixed; top: 85px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;">
+                {% for message in messages %}
+                    <div class="toast-message" style="background-color: {% if message.tags == 'error' %}#ef4444{% else %}var(--primary){% endif %}; color: white; padding: 12px 24px; border-radius: 4px !important; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <style>
+                .toast-message {
+                    animation: slideDown 0.3s ease-out, fadeOut 0.5s ease-out 4s forwards;
+                }
+                @keyframes slideDown {
+                    from { transform: translateY(-20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; visibility: hidden; }
+                }
+            </style>
+        {% endif %}
         <div class="app-layout">
             <aside class="sidebar">
                 <h1 class="logo-title">The Network</h1>
                 <nav class="sidebar-nav">
                     {% if request.user.is_authenticated %}
-                        <a href="{% url 'home' %}" class="nav-item">🏠 home</a>
-                        <a href="{% url 'profile' %}" class="nav-item">👤 Profile</a>
+                        <a href="{% url 'home' %}" class="nav-item"> 🏠︎  home</a>
+                        <a href="{% url 'profile' %}" class="nav-item"> 𖨆  Profile</a>
                         <a href="{% url 'inbox' %}" class="nav-item " style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>💬 Messages</span>
+                            <span>✉︎ Messages</span>
                             {% if request.user.profile.unread_message_count > 0 %}
                                 <span style="background-color: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 12px; font-weight: bold; min-width: 15px; text-align: center;">
                                     {{ request.user.profile.unread_message_count }}
                                 </span>
                             {% endif %}
                         </a>
-                        <a href="{% url 'search' %}" class="nav-item">🔍 Search</a>
+                        <a href="{% url 'search' %}" class="nav-item">🔍︎ Search</a>
                         <div class="logout-btn">
                             <form method="POST" action="{% url 'logout' %}" style="margin: 0;">
                                 {% csrf_token %}
                                 <button type="submit" class="nav-item logout-hover">
-                                    🚪 Log out
+                                    𓉞 Log out
                                 </button>
                             </form>
                         </div>
@@ -59,25 +86,6 @@
                     <p>Copyright 2026 The Network</p>
                     <p>All rights reserved</p>
                     <p>For any debugging, suggestions, and questionnaires please email: altzaloy15@gmail.com</p>
-                </div>
-                <div class ="six-sevemn">
-                    <p class="sixSeven">⠀⠀⢀⠤⣂⣤⣬⣭⣭⣭⣔⡠⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-                    ⠀⠔⣵⣾⣿⣿⣿⢿⣿⣿⣿⣿⣎⢂⠀⢲⣤⣤⣤⣤⣀⣒⣒⣒⣒⣂⡠⠤⠤⣄
-                    ⠐⣾⣿⣿⣿⡏⣾⡿⢎⣛⣫⣭⣴⣾⠆⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢼
-                    ⡇⣿⣿⣿⣿⣟⡿⢀⣐⣻⣛⡩⢁⠀⠀⣘⣛⣛⡛⠿⠿⠿⢿⣿⣿⣿⣿⣿⢟⣾
-                    ⡇⣿⣿⣿⣿⣷⣾⣿⣿⣿⣿⣿⣶⡕⠄⠉⠛⠛⠛⠛⡻⣣⣾⣿⣿⣿⢟⣵⣿⠛
-                    ⠃⣿⣿⣿⣿⣿⢋⣥⠭⡻⣿⣿⣿⣿⡌⡄⠀⠀⠀⡐⣼⣿⣿⣿⡿⣣⣾⠏⠀⠀
-                    ⠨⢻⣿⣿⣿⣧⢻⠁⠀⠘⢸⣿⣿⣿⡇⣿⠀⠀⠌⣼⣿⣿⣿⡿⢱⣿⠃⠀⠀⠀
-                    ⠀⢦⢻⣿⣿⣿⣦⣐⣀⣊⣼⣿⣿⡿⢱⡿⠀⠰⣸⣿⣿⣿⣿⢣⣿⠃⠀⠀⠀⠀
-                    ⠀⠀⠣⣙⠿⣿⣿⣿⣿⣿⣿⠿⢛⣵⡿⠃⢀⢃⣿⣿⣿⣿⡟⣾⡇⠀⠀⠀⠀⠀
-                    ⠀⠀⠀⠈⠛⠶⣮⣭⣭⣴⣶⡿⠿⠋⠀⠀⢨⣘⣿⡻⠿⠿⢇⣿⠀⠀⠀⠀⠀⠀
-                    ⠀⠀⢀⠔⠒⠂⠠⠤⠭⡀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠛⠛⠛⠻⠃⠀⠀⠀⠀⠀⠀
-                    ⢀⠆⠁⠀⡄⠀⠀⠀⠀⠈⢂⠀⠀⠀⠀⠀⠀⠀⠀⢀⡤⠒⠁⠀⠀⠒⢤⡀⠀⠀
-                    ⠣⠤⢤⠞⠂⠀⣀⠰⠃⠀⠘⣆⢀⣀⠀⠀⠀⠀⢀⠎⠀⢠⡀⠀⠀⠀⢀⠀⠙⡀
-                    ⠀⠀⢸⠀⠈⠭⡀⢈⣡⠔⢶⠁⣹⢩⠃⠀⢀⠀⢸⠀⠀⠀⣑⣠⣤⠀⠙⡦⣀⠜
-                    ⠀⠀⠀⠣⠀⢂⠞⠱⠴⣈⡸⠰⢇⠘⠀⠰⡭⠷⢝⡤⣂⣄⠒⢤⡐⠀⠀⡇⠀⠀
-                    ⠀⠀⠀⠀⠱⠄⣀⢜⢁⡠⠥⠊⠀⠀⠀⠀⠡⡘⡄⠐⡂⠘⢌⡀⠉⠂⡸⠀⠀⠀
-                    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠄⠹⢅⣀⠹⠒⠊⠀⠀⠀⠠</p>
                 </div>
             </aside>
             <main>
@@ -105,6 +113,8 @@
                                     {% url 'user_profile' notif.sender.username %}
                                 {% elif notif.notification_type == 'message' %}
                                     {% url 'chat_thread' notif.sender.username %}
+                                {% elif notif.story %}
+                                    {% url 'home' %}?story_id={{ notif.story.id }}
                                 {% elif notif.post %}
                                     {% url 'postDetail' notif.post.id %}{% if notif.comment %}#comment-{{ notif.comment.id }}{% endif %}
                                 {% else %}
@@ -121,7 +131,7 @@
                                     {% elif notif.notification_type == 'comment' %}
                                         📝 <strong>{{ notif.sender.username }}</strong> replied to your {% if notif.comment.parent %}reply{% else %}post{% endif %}.
                                     {% elif notif.notification_type == 'like' %}
-                                        ❤︎⁠ <strong>{{ notif.sender.username }}</strong> liked your {% if notif.comment %}reply{% else %}post{% endif %}.
+                                        ❤︎⁠ <strong>{{ notif.sender.username }}</strong> liked your {% if notif.story %}story{% elif notif.comment %}reply{% else %}post{% endif %}.
                                     {% elif notif.notification_type == 'dislike' %}
                                         😖👎 <strong>{{ notif.sender.username }}</strong> disliked your {% if notif.comment %}reply{% else %}post{% endif %}.
                                     {% elif notif.notification_type == 'tag' %}

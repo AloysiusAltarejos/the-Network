@@ -95,7 +95,7 @@
         <div style="border-top: 1px solid var(--border); padding-top: 15px;">
             <form method="POST" action="{% if thread.is_group %}{% url 'group_chat_thread' thread.id %}{% else %}{% url 'chat_thread' other_user.username %}{% endif %}" style="display: flex; gap: 10px;">
                 {% csrf_token %}
-                <input type="text" name="content" placeholder="Type a message..." required autocomplete="off" style="flex-grow: 1; padding: 12px 15px; background-color: transparent; color: var(--foreground); border: 1px solid var(--border); outline: none; font-size: 0.95rem; font-family: inherit; transition: border-color 0.2s ease;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';">
+                <input type="text" name="content" placeholder="Type a message..." required autocomplete="off" autofocus style="flex-grow: 1; padding: 12px 15px; background-color: transparent; color: var(--foreground); border: 1px solid var(--border); outline: none; font-size: 0.95rem; font-family: inherit; transition: border-color 0.2s ease;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';">
                 <button type="submit" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 10px 24px; font-weight: bold; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--muted)'; this.style.color='var(--foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--muted-foreground)';">
                     Send
                 </button>
@@ -105,34 +105,27 @@
 </main>
 
 
+
+<!-- goup modal that's separated from the main layout of the messages -->
 <div id="groupModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(9, 14, 23, 0.85); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
     <div style="background-color: var(--background); border: 1px solid var(--border); width: 450px; max-width: 90%; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: var(--foreground); text-transform: uppercase; letter-spacing: 1px; font-size: 1.1rem;">Initialize Group Thread</h3>
             <button onclick="document.getElementById('groupModal').style.display='none'" style="background: none; border: none; color: var(--muted-foreground); font-size: 1.2rem; cursor: pointer; transition: color 0.2s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--muted-foreground)'">✕</button>
         </div>
+
         <form method="POST" action="{% url 'create_group_thread' %}">
             {% csrf_token %}
             <input type="text" name="group_name" placeholder="Enter Group Name (e.g. Project Matrix)..." required style="width: 100%; padding: 12px; background-color: var(--background); border: 1px solid var(--border); color: var(--foreground); margin-bottom: 10px; outline: none; font-family: inherit; box-sizing: border-box; transition: border-color 0.2s ease;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+            
+            <!-- Search bar that triggers the JavaScript function -->
             <input type="text" id="modalUserSearch" onkeyup="filterModalUsers()" placeholder="Search directory..." style="width: 100%; padding: 12px; background-color: var(--muted); border: 1px solid var(--border); color: var(--foreground); margin-bottom: 15px; outline: none; font-family: inherit; box-sizing: border-box; transition: border-color 0.2s ease;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+            
+            <!-- JavaScript builds the user html inside this container -->
             <div id="modalUserList" style="height: 200px; overflow-y: auto; background-color: var(--background); border: 1px solid var(--border); margin-bottom: 20px; padding: 10px; display: flex; flex-direction: column; gap: 5px;">
-                {% for u in all_users %}
-                    <label class="modal-user-row" style="display: flex; align-items: center; gap: 12px; padding: 10px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--muted)'; this.style.borderColor='var(--border)';" onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='transparent';">
-                        <input type="checkbox" name="users" value="{{ u.id }}" onchange="validateGroupForm()" style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer;">
-                        <div style="width: 32px; height: 32px; flex-shrink: 0; background-color: var(--muted); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; overflow: hidden; font-weight: bold; font-family: monospace; color: var(--foreground); font-size: 0.8rem;">
-                            {% if u.profile.profile_picture %}
-                                <img src="{{ u.profile.profile_picture.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
-                            {% else %}
-                                {{ u.username.0|upper }}
-                            {% endif %}
-                        </div>
-                        <div style="display: flex; flex-direction: column; flex-grow: 1;">
-                            <strong class="modal-search-name" style="color: var(--foreground); font-size: 0.95rem;">{{ u.profile.name|default:u.username }}</strong>
-                            <span class="modal-search-username" style="color: var(--muted-foreground); font-size: 0.75rem;">@{{ u.username }}</span>
-                        </div>
-                    </label>
-                {% endfor %}
             </div>
+
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" onclick="document.getElementById('groupModal').style.display='none'" style="background: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 8px 18px; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem; letter-spacing: 1px; transition: all 0.2s ease;" onmouseover="this.style.color='var(--foreground)'; this.style.borderColor='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)'; this.style.borderColor='var(--muted-foreground)'">Cancel</button>
                 <button type="submit" id="createGroupBtn" disabled style="background: var(--primary); color: var(--primary-foreground); border: 1px solid var(--primary); padding: 8px 18px; cursor: not-allowed; text-transform: uppercase; font-weight: bold; font-size: 0.8rem; letter-spacing: 1px; opacity: 0.5; transition: all 0.2s ease;">Create Thread</button>
@@ -141,7 +134,7 @@
     </div>
 </div>
 
-
+<!--This is for the settings if you want to block the other person and also handles the group settings for nicknames and such-->
 <div id="settingsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(9, 14, 23, 0.85); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
     <div style="background-color: var(--background); border: 1px solid var(--border); width: 400px; max-width: 90%; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto;">
         
@@ -149,8 +142,9 @@
             <h3 style="margin: 0; color: var(--foreground); text-transform: uppercase; letter-spacing: 1px; font-size: 1.1rem;">Thread Settings</h3>
             <button onclick="document.getElementById('settingsModal').style.display='none'" style="background: none; border: none; color: var(--muted-foreground); font-size: 1.2rem; cursor: pointer; transition: color 0.2s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--muted-foreground)'">✕</button>
         </div>
-
+    
         <input type="text" id="chatSearchBox" onkeyup="searchChat()" placeholder="Search conversation (Ctrl+F)..." style="width: 100%; padding: 10px; margin-bottom: 20px; background-color: var(--muted); border: 1px solid var(--border); color: var(--foreground); outline: none; box-sizing: border-box;">
+        
         <div style="margin-bottom: 20px;">
             <p style="margin: 0 0 5px 0; color: var(--muted-foreground); font-size: 0.75rem; text-transform: uppercase;">Set Nicknames</p>
             <div style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border); padding: 10px; display: flex; flex-direction: column; gap: 8px;">
@@ -166,7 +160,7 @@
                 {% endfor %}
             </div>
         </div>
-
+    
         {% if thread.is_group %}
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
                 <form method="POST" action="{% url 'thread_settings' thread.id %}" style="display: flex; gap: 5px; margin: 0;">
@@ -184,6 +178,7 @@
                 </form>
             </div>
         {% endif %}
+        
         <form method="POST" action="{% url 'thread_settings' thread.id %}" style="margin-bottom: 20px;">
             {% csrf_token %}
             <input type="hidden" name="action" value="mute">
@@ -191,33 +186,19 @@
                 {% if request.user in thread.muted_by.all %}🔊 Unmute Notifications{% else %}🔇 Mute Notifications{% endif %}
             </button>
         </form>
-
+    
         {% if thread.is_group %}
             
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0 0 5px 0; color: var(--muted-foreground); font-size: 0.75rem; text-transform: uppercase;">Add Members</p>
                 <input type="text" id="settingsAddSearch" onkeyup="filterAddUsers()" placeholder="Search directory to add..." style="width: 100%; padding: 8px; margin-bottom: 10px; background-color: var(--background); border: 1px solid var(--border); color: var(--foreground); outline: none; box-sizing: border-box; font-size: 0.85rem;">
                 
-                <div style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border); padding: 10px; display: flex; flex-direction: column; gap: 8px;">
-                    {% for u in all_users %}
-                        {% if u not in thread.participants.all %}
-                            <div class="settings-add-row" style="display: flex; justify-content: space-between; align-items: center;">
-                                <span class="settings-add-username" style="color: var(--foreground); font-size: 0.9rem;">@{{ u.username }}</span>
-                                <form method="POST" action="{% url 'thread_settings' thread.id %}" style="margin: 0;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="add">
-                                    <input type="hidden" name="target_user_id" value="{{ u.id }}">
-                                    <button type="submit" style="background: var(--primary); color: white; border: none; cursor: pointer; font-size: 0.7rem; padding: 4px 10px; font-weight: bold;">ADD</button>
-                                </form>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                    {% if thread.participants.count == all_users.count|add:1 %}
-                        <p style="margin: 0; color: var(--muted-foreground); font-size: 0.8rem; text-align: center; font-style: italic;">Everyone is in this group.</p>
-                    {% endif %}
+                <!-- NEW JS CONTAINER GOES HERE -->
+                <div id="settingsAddUserList" style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border); padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                    <!-- JavaScript will dynamically inject users here -->
                 </div>
             </div>
-
+        
             <div style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border); margin-bottom: 20px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
                 <p style="margin: 0 0 5px 0; color: var(--muted-foreground); font-size: 0.75rem; text-transform: uppercase;">Manage Members</p>
                 {% for p in thread.participants.all %}
@@ -234,7 +215,7 @@
                     </div>
                 {% endfor %}
             </div>
-
+        
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <form method="POST" action="{% url 'thread_settings' thread.id %}" style="margin: 0;">
                     {% csrf_token %}
@@ -251,7 +232,7 @@
                     </button>
                 </form>
             </div>
-
+        
         {% else %}
             <form method="POST" action="{% url 'thread_settings' thread.id %}" style="margin-bottom: 10px;">
                 {% csrf_token %}
@@ -270,11 +251,33 @@
         {% endif %}
     </div>
 </div>
-
 <script>
+    // gather current thread participants into a simple array
+    const threadParticipantIds = [
+        {% if thread %}
+            {% for p in thread.participants.all %}
+                "{{ p.id }}"{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
+    ];
+
+    //  Package Django data into a client-side JSON structure
+    const allUsersData = [
+        {% for u in all_users %}
+        {
+            id: "{{ u.id }}",
+            username: "{{ u.username|escapejs }}",
+            name: "{{ u.profile.name|default:u.username|escapejs }}",
+            pic_url: "{% if u.profile.profile_picture %}{{ u.profile.profile_picture.url }}{% else %}none{% endif %}",
+            initial: "{{ u.username.0|upper }}",
+            inThread: threadParticipantIds.includes("{{ u.id }}")
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
     const chatLog = document.getElementById('chatLogArea');
     if (chatLog) {
         chatLog.scrollTop = chatLog.scrollHeight;
+        window.scrollTo(0, document.body.scrollHeight);
     }
     function searchChat() {
         const query = document.getElementById('chatSearchBox').value.toLowerCase();
@@ -288,34 +291,78 @@
             }
         });
     }
+
+    // render the new group modal list
+    function filterModalUsers(){
+        const query = document.getElementById('modalUserSearch').value.toLowerCase();
+        const container = document.getElementById('modalUserList');
+        container.innerHTML = '';
+
+        // filter the json array directly in memory
+        const results = allUsersData.filter(u => 
+            u.name.toLowerCase().includes(query) || u.username.toLowerCase().includes(query)
+        ).slice(0, 25);
+
+        results.forEach(u => {
+            const picHTML = u.pic_url !== 'none' 
+                ? `<img src="${u.pic_url}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">`
+                : `${u.initial}`;
+
+            container.innerHTML += `
+                <label class="modal-user-row" style="display: flex; align-items: center; gap: 12px; padding: 10px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--muted)'; this.style.borderColor='var(--border)';" onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='transparent';">
+                    <input type="checkbox" name="users" value="${u.id}" onchange="validateGroupForm()" style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer;">
+                    <div style="width: 32px; height: 32px; flex-shrink: 0; background-color: var(--muted); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; overflow: hidden; font-weight: bold; font-family: monospace; color: var(--foreground); font-size: 0.8rem;">
+                        ${picHTML}
+                    </div>
+                    <div style="display: flex; flex-direction: column; flex-grow: 1;">
+                        <strong class="modal-search-name" style="color: var(--foreground); font-size: 0.95rem;">${u.name}</strong>
+                        <span class="modal-search-username" style="color: var(--muted-foreground); font-size: 0.75rem;">@${u.username}</span>
+                    </div>
+                </label>
+            `;
+        });
+    }
+
+    // Render the add member list
     function filterAddUsers() {
         const query = document.getElementById('settingsAddSearch').value.toLowerCase();
-        const rows = document.querySelectorAll('.settings-add-row');
+        const container = document.getElementById('settingsAddUserList');
         
-        rows.forEach(row => {
-            const username = row.querySelector('.settings-add-username').innerText.toLowerCase();
-            if (username.includes(query)) {
-                row.style.display = 'flex';
-            } else {
-                row.style.display = 'none';
-            }
+        if (!container) return;
+        container.innerHTML = '';
+
+        // filter JSON for users that are not in the thread
+        const results = allUsersData.filter(u => 
+            !u.inThread && (u.name.toLowerCase().includes(query) || u.username.toLowerCase().includes(query))
+        ).slice(0, 30);
+
+        if (results.length === 0 && query === '') {
+            container.innerHTML = `<p style="margin: 0; color: var(--muted-foreground); font-size: 0.8rem; text-align: center; font-style: italic;">Everyone is in this group or no users found.</p>`;
+            return;
+        }
+
+        results.forEach(u => {
+            container.innerHTML += `
+                <div class="settings-add-row" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="settings-add-username" style="color: var(--foreground); font-size: 0.9rem;">@${u.username}</span>
+                    <form method="POST" action="{% url 'thread_settings' thread.id %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add">
+                        <input type="hidden" name="target_user_id" value="${u.id}">
+                        <button type="submit" style="background: var(--primary); color: white; border: none; cursor: pointer; font-size: 0.7rem; padding: 4px 10px; font-weight: bold;">ADD</button>
+                    </form>
+                </div>
+            `;
         });
     }
-    function filterModalUsers() {
-        const query = document.getElementById('modalUserSearch').value.toLowerCase();
-        const rows = document.querySelectorAll('.modal-user-row');
-        
-        rows.forEach(row => {
-            const name = row.querySelector('.modal-search-name').innerText.toLowerCase();
-            const username = row.querySelector('.modal-search-username').innerText.toLowerCase();
-            
-            if (name.includes(query) || username.includes(query)) {
-                row.style.display = 'flex';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
+
+    // auto-load the lists as soon as the page opens
+    document.addEventListener("DOMContentLoaded", () => {
+        filterModalUsers();
+        if (document.getElementById('settingsAddUserList')) {
+            filterAddUsers();
+        }
+    });
     function validateGroupForm() {
         const checkboxes = document.querySelectorAll('input[name="users"]:checked');
         const btn = document.getElementById('createGroupBtn');

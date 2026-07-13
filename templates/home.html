@@ -3,7 +3,33 @@
 {% block content %}
 
 <main style="flex-grow: 1; display: flex; flex-direction: column; width: 100%; align-items: stretch; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh;">
-    
+
+    <div id="story-tray" style="display: flex; overflow-x: auto; padding: 15px 0; margin-bottom: 20px; border-bottom: 1px solid var(--border); gap: 15px; scrollbar-width: none;">
+        <!-- ADD STORY BUTTON (Always First) -->
+        <div onclick="document.getElementById('addStoryModal').style.display='flex'" style="position: relative; width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--muted-foreground); cursor: pointer; flex-shrink: 0; display: flex; justify-content: center; align-items: center; background-color: var(--muted); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <!-- Profile Picture Base -->
+            <div style="width: 100%; height: 100%; border-radius: 50%; background-image: url('{% if request.user.profile.profile_picture %}{{ request.user.profile.profile_picture.url }}{% endif %}'); background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center;">
+                {% if not request.user.profile.profile_picture %}
+                    <span style="color: var(--muted-foreground); font-size: 1.5rem; font-weight: bold; font-family: monospace;">{{ request.user.username.0|upper }}</span>
+                {% endif %}
+            </div>
+            <!-- The Overlapping Plus Badge -->
+            <div style="position: absolute; bottom: -2px; right: -2px; width: 22px; height: 22px; background-color: var(--primary); border-radius: 50%; border: 3px solid var(--background); display: flex; justify-content: center; align-items: center; color: var(--primary-foreground); font-weight: bold; font-size: 14px; line-height: 1; box-sizing: content-box;">
+                +
+            </div>
+        </div>
+        <!-- JavaScript will inject the friends' story bubbles here -->
+    </div>
+
+    <!-- what kind of feed do you want to have -->
+    <div style="display: flex; border-bottom: 1px solid var(--border); width: 100%; box-sizing: border-box; background-color: var(--muted);">
+        <a href="?feed=global" style="flex: 1; text-align: center; padding: 15px; text-decoration: none; color: {% if current_feed != 'following' %}var(--primary){% else %}var(--muted-foreground){% endif %}; font-weight: bold; border-bottom: {% if current_feed != 'following' %}2px solid var(--primary){% else %}none{% endif %}; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='var(--background)'" onmouseout="this.style.backgroundColor='transparent'">
+            ✈︎ Global Network
+        </a>
+        <a href="?feed=following" style="flex: 1; text-align: center; padding: 15px; text-decoration: none; color: {% if current_feed == 'following' %}var(--primary){% else %}var(--muted-foreground){% endif %}; font-weight: bold; border-bottom: {% if current_feed == 'following' %}2px solid var(--primary){% else %}none{% endif %}; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='var(--background)'" onmouseout="this.style.backgroundColor='transparent'">
+            👁👁 Following
+        </a>
+    </div>
     <!-- create new post -->
     <div style="border-bottom: 1px solid var(--border); padding: 25px; width: 100%; box-sizing: border-box;">
         <div style="display: flex; gap: 15px;">
@@ -14,7 +40,7 @@
                     {{ request.user.username.0|upper }}
                 {% endif %}
             </div>
-
+            <!--What you wanna post goes here like text and images hopefully only text -->
             <form method="POST" action="{% url 'home' %}" enctype="multipart/form-data" style="flex-grow: 1; display: flex; flex-direction: column;">
                 {% csrf_token %}
                 <textarea 
@@ -25,15 +51,23 @@
                     style="width: 100%; background: transparent; border: none; color: var(--foreground); resize: none; outline: none; font-family: inherit; font-size: 1rem; margin-bottom: 15px;"
                 ></textarea>
 
+                <!--Image posts are handled in this div-->
                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 15px;">
-                    <div style="display: flex; align-items: center; gap: 15px; color: var(--muted-foreground); font-size: 1.2rem;">
+                    <div class="image-text-input">
                         <label for="image-upload" style="cursor: pointer; margin: 0;" title="Attach a photo (Max 5 per account)">
-                            🖼️
+                            [¯◉°]
                         </label>
                         <input type="file" id="image-upload" name="image" accept="image/png, image/jpeg" style="display: none;" onchange="document.getElementById('file-name').textContent = this.files[0] ? this.files[0].name : '';">
                         <span id="file-name" style="font-size: 0.8rem; color: var(--primary);"></span>
                     </div>
 
+                    <!-- what feed to post it -->
+                    <input type="hidden" name="visibility" id="visibilityInput" value="public">
+                    <button class="post-visibility-button" type="button" id="visibilityToggle" onclick="toggleVisibility()" style="color: var(--primary); border: 1px solid var(--primary); background-color: var(--background); padding: 6px 12px; font-family: inherit; font-size: 0.8rem; cursor: pointer; outline: none; margin-right: 15px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--muted)';" onmouseout="this.style.backgroundColor='var(--background)';">
+                         ✈︎ Public (Everyone)
+                    </button>
+
+                    <!--Post button-->
                     <button type="submit" style="background-color: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 8px 24px; font-weight: bold; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--muted)'; this.style.color='var(--foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--muted-foreground)';">
                         Send
                     </button>
@@ -41,6 +75,44 @@
             </form>
         </div>
     </div>
+
+    <!-- SUGGESTED CONNECTIONS TRAY -->
+    {% if suggested_profiles %}
+        <div style="border-bottom: 1px solid var(--border); padding: 25px; width: 100%; box-sizing: border-box; background-color: var(--background);">
+            <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--muted-foreground); text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">
+                𖠋 People You May Know
+            </p>
+            <div style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin;">
+                {% for profile in suggested_profiles %}
+                    <div style="min-width: 140px; max-width: 140px; border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; background-color: var(--muted); flex-shrink: 0; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                        
+                        <a href="{% url 'user_profile' profile.user.username %}" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; width: 100%;">
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background-color: var(--background); border: 2px solid var(--primary); display: flex; justify-content: center; align-items: center; overflow: hidden; margin-bottom: 10px; font-weight: bold; font-family: monospace; color: var(--foreground); font-size: 1.5rem;">
+                                {% if profile.profile_picture %}
+                                    <img src="{{ profile.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                    {{ profile.user.username.0|upper }}
+                                {% endif %}
+                            </div>
+                            <strong style="color: var(--foreground); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+                                {{ profile.name|default:profile.user.username }}
+                            </strong>
+                            <span style="color: var(--muted-foreground); font-size: 0.75rem; margin-bottom: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+                                @{{ profile.user.username }}
+                            </span>
+                        </a>
+                        
+                        <form method="POST" action="{% url 'toggle_follow' profile.user.username %}" style="margin: auto 0 0 0; width: 100%;">
+                            {% csrf_token %}
+                            <button type="submit" style="width: 100%; background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 6px 0; cursor: pointer; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                                Follow
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
 
     <!-- Reloading Pages -->
     {% for post in page_obj %} 
@@ -64,6 +136,11 @@
                     </div>
                     <div style="display: flex; gap: 12px; align-items: center; flex-shrink: 0;">
                         <span style="color: var(--muted-foreground); font-size: 0.85rem;">{{ post.smart_date }}</span>
+                        {% if post.followers_only %}
+                            <span style="font-size: 0.7rem; color: #eab308; border: 1px solid #eab308; padding: 2px 6px; letter-spacing: 0.5px; text-transform: uppercase;">
+                                🔒︎ Posted for followers only
+                            </span>
+                        {% endif %}
                         <div style="position: relative;">
                             <button onclick="toggleOptionsMenu(event, 'post-options-{{ post.id }}')" style="background: none; border: none; color: var(--muted-foreground); cursor: pointer; font-size: 1.2rem; padding: 0 5px; line-height: 1;" onmouseover="this.style.color='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)'">
                                 ...
@@ -97,18 +174,18 @@
                     </div>
                 {% endif %}
                 <div style="display: flex; gap: 30px; color: var(--muted-foreground); font-size: 0.9rem; margin-top: 15px;">
-                    <form method="POST" action="{% url 'toggle_like' post.id %}" style="margin: 0;">
-                        {% csrf_token %}
-                        <button type="submit" style="background: none; border: none; cursor: pointer; color: {% if request.user in post.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}; font: inherit; padding: 0; display: flex; align-items: center; gap: 8px; transition: color 0.3s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='{% if request.user in post.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}'">
-                            ❤︎ {{ post.likes.count }}
-                        </button>
-                    </form>
-                    <form method="POST" action="{% url 'toggle_dislike' post.id %}" style="margin: 0;">
-                        {% csrf_token %}
-                        <button type="submit" style="background: none; border: none; cursor: pointer; color: {% if request.user in post.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}; font: inherit; padding: 0; display: flex; align-items: center; gap: 8px; transition: color 0.3s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='{% if request.user in post.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}'">
-                            🛇 {{ post.dislikes.count }}
-                        </button>
-                    </form>
+                    
+                    <!-- like button for posts -->
+                    <button type="button" id="like-btn-{{ post.id }}" onclick="togglePostInteraction({{ post.id }}, 'like')" style="background: none; border: none; cursor: pointer; color: {% if request.user in post.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}; font: inherit; padding: 0; display: flex; align-items: center; gap: 8px; transition: color 0.3s ease, transform 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='{% if request.user in post.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}'">
+                        ❤︎ <span id="like-count-{{ post.id }}">{{ post.likes.count }}</span>
+                    </button>
+                    
+                    <!-- dislike button for posts -->
+                    <button type="button" id="dislike-btn-{{ post.id }}" onclick="togglePostInteraction({{ post.id }}, 'dislike')" style="background: none; border: none; cursor: pointer; color: {% if request.user in post.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}; font: inherit; padding: 0; display: flex; align-items: center; gap: 8px; transition: color 0.3s ease, transform 0.2s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='{% if request.user in post.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}'">
+                        🛇 <span id="dislike-count-{{ post.id }}">{{ post.dislikes.count }}</span>
+                    </button>
+                    
+                    <!--reply button for posts-->>
                     <a href="{% url 'postDetail' post.id %}" style="text-decoration: none; color: var(--muted-foreground); display: flex; align-items: center; gap: 8px; transition: color 0.3s ease;" onmouseover="this.style.color='#39FF14'" onmouseout="this.style.color='var(--muted-foreground)'">
                         💬 Replies {{ post.comments.count }}
                     </a>
@@ -116,11 +193,32 @@
             </div>
         </div>
     {% endfor %}
-    <div class="pagination-controls" style="padding: 20px; text-align: center;">
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" style="color: var(--primary); text-decoration: none; font-weight: bold;">Load Older Posts</a>
-        {% endif %}
-    </div>
+    <div class="pagination-controls" style="padding: 20px; display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; border-top: 1px solid var(--border); margin-top: 15px;">
+            
+            <!-- going back to newest page/current -->
+            {% if page_obj.number > 2 %}
+                <a href="?feed={{ current_feed }}&page=1" style="color: var(--primary); text-decoration: none; font-family: solway; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--primary); padding: 6px 12px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                    ❮❮❮❮ Newest
+                </a>
+            {% endif %}
+            <!-- go back to previous basically -->
+            {% if page_obj.has_previous %}
+                <a href="?feed={{ current_feed }}&page={{ page_obj.previous_page_number }}" style="color: var(--primary); text-decoration: none; font-family: solway; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--primary); padding: 6px 12px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                    ⮜── Newer
+                </a>
+            {% endif %}
+
+            <!-- index of where you are -->
+            <span style="color: var(--muted-foreground); font-size: 0.85rem; font-family: 'Share Tech Mono', monospace;">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            <!-- checking older post to limit how much posts you see in one page -->
+            {% if page_obj.has_next %}
+                <a href="?feed={{ current_feed }}&page={{ page_obj.next_page_number }}" style="color: var(--primary); text-decoration: none; font-family: solway; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--primary); padding: 6px 12px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                    Older ⌯⌲
+                </a>
+            {% endif %}
+        </div>
 </main>
 
 <script>
@@ -137,6 +235,580 @@
             document.querySelectorAll('[id^="menu-"]').forEach(el => el.style.display = 'none');
         }
     });
+    //post button visibility mechanic
+    function toggleVisibility(){
+        const input = document.getElementById('visibilityInput');
+        const btn = document.getElementById('visibilityToggle');
+
+        if (input.value === 'public'){
+            input.value = 'followers';
+            btn.innerHTML = '🔒︎ Followers Only';
+            btn.style.color = 'rgba(234, 179, 8, 1)';
+            btn.style.borderColor = 'rgba(234, 179, 8, 0.5)';
+        } else{
+            input.value = 'public';
+            btn.innerHTML = ' ✈︎ Public (Everyone)';
+            btn.style.color = 'var(--primary)';
+            btn.style.borderColor = 'var(--primary)';
+        }
+    }
+    // Load the backend payload directly into JavaScript so the code is optimized and we dont use that much ram
+    const storiesData = JSON.parse('{{ stories_json|safe|escapejs }}');
+    
+    let currentUserIndex = 0;
+    let currentItemIndex = 0;
+    let storyTimer = null;
+    const STORY_DURATION = 15000;
+
+    function initStoryTray() {
+        const tray = document.getElementById('story-tray');
+        
+        // KEEP the first element (Add Story button)
+        while (tray.children.length > 1) {
+            tray.removeChild(tray.lastChild);
+        }
+        
+        storiesData.forEach((user, index) => {
+            const allViewed = user.items.every(item => item.viewed);
+            const borderColor = allViewed ? 'var(--muted-foreground)' : 'var(--primary)';
+
+            const bubble = document.createElement('div');
+            bubble.style.cssText = `width: 60px; height: 60px; border-radius: 50%; border: 3px solid ${borderColor}; cursor: pointer; flex-shrink: 0; background-color: var(--muted); background-image: url('${user.pic_url}'); background-size: cover; background-position: center;`;
+            bubble.onclick = () => openStory(index);
+            
+            tray.appendChild(bubble);
+        });
+    }
+
+    function openStory(userIndex) {
+        if (!storiesData[userIndex] || storiesData[userIndex].items.length === 0) return;
+        
+        currentUserIndex = userIndex;
+        const firstUnviewed = storiesData[userIndex].items.findIndex(item => !item.viewed);
+        currentItemIndex = firstUnviewed === -1 ? 0 : firstUnviewed;
+        
+        document.getElementById('storyModal').style.display = 'flex';
+        renderCurrentStory();
+    }
+
+    function renderCurrentStory() {
+        clearTimeout(storyTimer);
+        
+        const user = storiesData[currentUserIndex];
+        const item = user.items[currentItemIndex];
+        
+        // Header & Content
+        document.getElementById('story-author-name').innerText = user.username;
+        document.getElementById('story-author-pic').style.backgroundImage = `url('${user.pic_url}')`;
+        const contentArea = document.getElementById('story-content-area');
+        const textArea = document.getElementById('story-text');
+        
+        if (item.image_url) {
+            contentArea.style.backgroundImage = `url('${item.image_url}')`;
+            textArea.innerText = item.text_content || '';
+        } else {
+            contentArea.style.backgroundImage = 'none';
+            contentArea.style.backgroundColor = 'var(--primary)';
+            textArea.innerText = item.text_content;
+        }
+
+        // UI context difference
+       if (item.is_mine) {
+            document.getElementById('story-reply-input').style.display = 'none';
+            document.getElementById('story-like-btn').style.display = 'none';
+            document.getElementById('story-delete-btn').style.display = 'block';
+            document.getElementById('story-viewers-btn').style.display = 'block';
+        } else {
+            document.getElementById('story-reply-input').style.display = 'block';
+            document.getElementById('story-like-btn').style.display = 'block';
+            document.getElementById('story-delete-btn').style.display = 'none';
+            document.getElementById('story-viewers-btn').style.display = 'none';
+            
+            // Set initial like button color based on backend data
+            const likeBtn = document.getElementById('story-like-btn');
+            likeBtn.style.color = item.is_liked ? '#ef4444' : 'white';
+            
+            if (!item.viewed){
+                markStoryAsViewed(item.id); 
+                item.viewed = true; 
+            }
+        }
+        renderProgressBars(user.items.length, currentItemIndex);
+        storyTimer = setTimeout(nextStory, STORY_DURATION);
+    }
+
+    function renderProgressBars(total, current) {
+        const container = document.getElementById('story-progress-container');
+        container.innerHTML = '';
+        for (let i = 0; i < total; i++) {
+            const bar = document.createElement('div');
+            bar.style.flex = '1';
+            bar.style.height = '3px';
+            bar.style.backgroundColor = i < current ? 'white' : 'rgba(255,255,255,0.3)';
+            bar.style.borderRadius = '2px';
+            if (i === current) {
+                const fill = document.createElement('div');
+                fill.style.height = '100%';
+                fill.style.backgroundColor = 'white';
+                fill.style.width = '0%';
+                fill.style.transition = `width ${STORY_DURATION}ms linear`;
+                bar.appendChild(fill);
+                setTimeout(() => fill.style.width = '100%', 10);
+            }
+            container.appendChild(bar);
+        }
+    }
+
+    function nextStory() {
+        const user = storiesData[currentUserIndex];
+        if (currentItemIndex < user.items.length - 1) {
+            currentItemIndex++;
+            renderCurrentStory();
+        } else if (currentUserIndex < storiesData.length - 1) {
+            openStory(currentUserIndex + 1);
+        } else {
+            closeStory();
+        }
+    }
+
+    function prevStory() {
+        if (currentItemIndex > 0) {
+            currentItemIndex--;
+            renderCurrentStory();
+        } else if (currentUserIndex > 0) {
+            const prevUser = storiesData[currentUserIndex - 1];
+            currentItemIndex = prevUser.items.length - 1;
+            currentUserIndex--;
+            renderCurrentStory();
+        }
+    }
+
+    function closeStory() {
+        clearTimeout(storyTimer);
+        document.getElementById('storyModal').style.display = 'none';
+        initStoryTray(); 
+    }
+
+    // --- API CALLS ---
+    function markStoryAsViewed(storyId) {
+        fetch(`/story/${storyId}/view/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token }}'}
+        });
+    }
+
+    function deleteCurrentStory() {
+        if(confirm("Delete this story?")) {
+            const storyId = storiesData[currentUserIndex].items[currentItemIndex].id;
+            fetch(`/story/${storyId}/delete/`,{
+                method: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'}
+            }).then(() => { window.location.reload(); });
+        }
+    }
+
+    function likeCurrentStory() {
+        const item = storiesData[currentUserIndex].items[currentItemIndex];
+        
+        fetch(`/story/${item.id}/like/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token }}'}
+        }).then(response => response.json())
+        .then(data => {
+            const btn = document.getElementById('story-like-btn');
+            // Toggle Logic
+            if (data.status === 'liked') {
+                item.is_liked = true;
+                btn.style.color = '#ef4444';
+                btn.style.transform = 'scale(1.3)';
+                setTimeout(() => { btn.style.transform = 'scale(1)'; }, 200);
+            } else {
+                item.is_liked = false;
+                btn.style.color = 'white';
+                btn.style.transform = 'scale(0.8)';
+                setTimeout(() => { btn.style.transform = 'scale(1)'; }, 200);
+            }
+        });
+    }
+
+    // --- VIEWERS LIST LOGIC ---
+    function openViewersList() {
+        const storyId = storiesData[currentUserIndex].items[currentItemIndex].id;
+        const container = document.getElementById('viewers-list-container');
+        
+        container.innerHTML = '<div style="text-align: center; color: var(--muted-foreground); padding: 20px; font-family: monospace;">Loading...</div>';
+        document.getElementById('viewersModal').style.display = 'flex';
+        clearTimeout(storyTimer);
+
+        fetch(`/story/${storyId}/viewers/`)
+            .then(response => response.json())
+            .then(data => {
+                container.innerHTML = '';
+                if (data.viewers.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: var(--muted-foreground); padding: 20px; font-style: italic;">No views yet.</div>';
+                    return;
+                }
+                
+                data.viewers.forEach(viewer => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid var(--border);';
+                    
+                    const picHTML = viewer.pic_url 
+                        ? `<img src="${viewer.pic_url}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border);">`
+                        : `<div style="width: 45px; height: 45px; border-radius: 50%; background-color: var(--muted); display: flex; justify-content: center; align-items: center; color: var(--muted-foreground); font-weight: bold; font-family: monospace; font-size: 1.2rem; border: 1px solid var(--border);">${viewer.username[0].toUpperCase()}</div>`;
+                    
+                    const heartIcon = viewer.liked ? `<span style="color: #ef4444; margin-left: auto; font-size: 1.2rem;">❤︎</span>` : '';
+                    
+                    row.innerHTML = `
+                        ${picHTML}
+                        <div style="flex-grow: 1; display: flex; flex-direction: column;">
+                            <strong style="color: var(--foreground); font-size: 0.9rem;">${viewer.username}</strong>
+                            <span style="color: var(--muted-foreground); font-size: 0.8rem;">${viewer.name}</span>
+                        </div>
+                        ${heartIcon}
+                    `;
+                    container.appendChild(row);
+                });
+            });
+    }
+
+    function closeViewersList() {
+        document.getElementById('viewersModal').style.display = 'none';
+        storyTimer = setTimeout(nextStory, STORY_DURATION);
+    }
+
+    // --- CUSTOM STORY VISIBILITY LOGIC ---
+    let selectedCustomThreads = new Map();
+
+    function toggleCustomStoryUI(value) {
+        document.getElementById('customThreadsUI').style.display = value === 'custom' ? 'flex' : 'none';
+        if (value === 'custom') filterCustomThreads(); 
+    }
+
+    function filterCustomThreads() {
+        const query = document.getElementById('custom-thread-search').value.toLowerCase();
+        const options = document.querySelectorAll('.custom-thread-option');
+        
+        options.forEach(opt => {
+            const name = opt.getAttribute('data-name').toLowerCase();
+            const id = opt.getAttribute('data-id');
+            if (name.includes(query) && !selectedCustomThreads.has(id)) {
+                opt.style.display = 'flex';
+            } else {
+                opt.style.display = 'none';
+            }
+        });
+    }
+
+    function selectCustomThread(id, name) {
+        if (!selectedCustomThreads.has(id)) {
+            selectedCustomThreads.set(id, name);
+            document.getElementById('custom-thread-search').value = ''; 
+            updateCustomThreadsUI();
+        }
+    }
+
+    function removeCustomThread(id) {
+        selectedCustomThreads.delete(id);
+        updateCustomThreadsUI();
+    }
+
+    function updateCustomThreadsUI() {
+        const selectedContainer = document.getElementById('selected-custom-threads');
+        const hiddenContainer = document.getElementById('hidden-custom-inputs');
+        
+        selectedContainer.innerHTML = '';
+        hiddenContainer.innerHTML = '';
+
+        selectedCustomThreads.forEach((name, id) => {
+            const pill = document.createElement('div');
+            pill.style.cssText = 'background: var(--primary); color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.75rem; display: flex; align-items: center; gap: 8px; font-weight: bold;';
+            pill.innerHTML = `<span>${name}</span> <span onclick="removeCustomThread('${id}')" style="cursor: pointer; color: #ef4444; font-size: 0.9rem;" title="Remove">✕</span>`;
+            selectedContainer.appendChild(pill);
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'custom_threads';
+            input.value = id;
+            hiddenContainer.appendChild(input);
+        });
+        filterCustomThreads();
+    }
+
+    // --- EVENT LISTENERS ---
+    document.addEventListener("DOMContentLoaded", function() {
+        initStoryTray();
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetStoryId = urlParams.get('story_id');
+        
+        if (targetStoryId){
+            for (let u = 0; u < storiesData.length; u++){
+                let sIndex = storiesData[u].items.findIndex(s => s.id == targetStoryId);
+                if (sIndex !== -1){
+                    currentUserIndex = u;
+                    currentItemIndex = sIndex;
+                    document.getElementById('storyModal').style.display = 'flex';
+                    renderCurrentStory();
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    break;
+                }
+            }
+        }
+    });
+
+    document.getElementById('story-reply-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value.trim() !== '') {
+            const storyId = storiesData[currentUserIndex].items[currentItemIndex].id;
+            const replyText = this.value;
+            
+            const formData = new FormData();
+            formData.append('content', replyText);
+
+            fetch(`/story/${storyId}/reply/`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                body: formData
+            }).then(response => {
+                if(response.ok){
+                    this.value = '';
+                    this.placeholder = 'Reply sent!';
+                    setTimeout(() => { this.placeholder = 'Reply...'; }, 2000);
+                }
+            });
+        }
+    });
+
+    function togglePostInteraction(postId, action) {
+        // Send request in the background
+        fetch(`/post/${postId}/${action}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const likeBtn = document.getElementById(`like-btn-${postId}`);
+            const likeCount = document.getElementById(`like-count-${postId}`);
+            const dislikeBtn = document.getElementById(`dislike-btn-${postId}`);
+            const dislikeCount = document.getElementById(`dislike-count-${postId}`);
+
+            // update the numbers 
+            likeCount.innerText = data.likes;
+            dislikeCount.innerText = data.dislikes;
+
+            // just a little animation when clicked
+            const targetBtn = action === 'like' ? likeBtn : dislikeBtn;
+            targetBtn.style.transform = 'scale(1.4)';
+            setTimeout(() => { targetBtn.style.transform = 'scale(1)'; }, 200);
+
+            // update active colors and disregard the mouseout rules
+            if (data.status === 'liked') {
+                likeBtn.style.color = 'var(--primary)';
+                likeBtn.setAttribute('onmouseout', "this.style.color='var(--primary)'");
+                
+                dislikeBtn.style.color = 'var(--muted-foreground)';
+                dislikeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            } 
+            else if (data.status === 'unliked') {
+                likeBtn.style.color = 'var(--muted-foreground)';
+                likeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            } 
+            else if (data.status === 'disliked') {
+                dislikeBtn.style.color = '#ef4444';
+                dislikeBtn.setAttribute('onmouseout', "this.style.color='#ef4444'");
+                
+                likeBtn.style.color = 'var(--muted-foreground)';
+                likeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            } 
+            else if (data.status === 'undisliked') {
+                dislikeBtn.style.color = 'var(--muted-foreground)';
+                dislikeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            }
+        });
+    }
 </script>
+
+<!-- viewers list modal -->
+<div id="viewersModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(9, 14, 23, 0.85); z-index: 10001; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: var(--background); border: 1px solid var(--border); width: 400px; max-width: 90%; max-height: 70vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        
+        <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; color: var(--foreground); text-transform: uppercase; font-size: 1rem; letter-spacing: 1px;">Story Viewers</h3>
+            <!-- Closes modal and resumes timer -->
+            <button onclick="closeViewersList()" style="background: none; border: none; color: var(--muted-foreground); font-size: 1.2rem; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-foreground)'">✕</button>
+        </div>
+        
+        <!-- The list container -->
+        <div id="viewers-list-container" style="overflow-y: auto; padding: 10px; flex-grow: 1; scrollbar-width: thin;">
+            <!-- JS will inject viewers here -->
+        </div>
+    </div>
+</div>
+
+
+<!--modals for adding story-->
+<div id="addStoryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(9, 14, 23, 0.85); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: var(--background); border: 1px solid var(--border); width: 450px; max-width: 90%; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <h3 style="color: var(--foreground); margin: 0; text-transform: uppercase; letter-spacing: 1px;">Create Story</h3>
+            <div style="text-align: right; color: var(--muted-foreground); font-size: 0.8rem; font-family: monospace;">
+                <div style="color: {% if text_left == 0 %}#ef4444{% else %}inherit{% endif %};">Text left: {{ text_left }} / 5</div>
+                <div style="color: {% if image_left == 0 %}#ef4444{% else %}inherit{% endif %};">Image left: {{ image_left }} / 3</div>
+            </div>
+        </div>
+    
+        <form method="POST" action="/story/create/" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+            {% csrf_token %}
+            <!-- TEXT INPUT (Hides if limit reached) -->
+            {% if text_left > 0 %}
+                <textarea name="text_content" placeholder="Type a text story..." style="width: 100%; height: 100px; background-color: var(--muted); color: var(--foreground); border: 1px solid var(--border); padding: 12px; font-family: inherit; font-size: 0.9rem; outline: none; box-sizing: border-box; resize: none;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+            {% else %}
+                <div class="story-limit-warning">
+                    ⚠︎ Text limit reached (5/5). Try again tomorrow!
+                </div>
+            {% endif %}
+            
+            <!-- IMAGE INPUT (Hides if limit reached) -->
+            {% if image_left > 0 %}
+                <div style="border: 1px dashed var(--border); padding: 15px; text-align: center; background-color: var(--muted);">
+                    <input type="file" name="image" accept="image/*" style="color: var(--muted-foreground); font-size: 0.85rem; width: 100%;">
+                </div>
+            {% else %}
+                <div class="story-limit-warning" style="padding: 15px; text-align: center; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; font-weight: bold; font-size: 0.85rem;">
+                    ⚠︎ Image limit reached (3/3). Try again tomorrow!
+                </div>
+            {% endif %}
+            
+           <!-- VISIBILITY SELECTOR -->
+            <select name="visibility" id="storyVisibilitySelect" onchange="toggleCustomStoryUI(this.value)" style="background-color: var(--background); color: var(--foreground); border: 1px solid var(--border); padding: 10px; font-family: inherit; outline: none; cursor: pointer;">
+                <option value="public">✈︎ Public (Everyone)</option>
+                <option value="followers">🔒︎ Followers Only</option>
+                <option value="custom">𖣨 Specific Groups (Custom)</option>
+            </select>
+        
+            <!-- NEW SEARCHABLE CUSTOM THREADS UI -->
+            <div id="customThreadsUI" style="display: none; flex-direction: column; gap: 10px; max-height: 250px; padding: 10px; border: 1px solid var(--border); background: var(--muted); scrollbar-width: thin; box-sizing: border-box;">
+                <div style="font-size: 0.8rem; color: var(--muted-foreground);">Search and select viewers:</div>
+                <!-- Selected Friends/Groups (Bubbles) -->
+                <div id="selected-custom-threads" style="display: flex; flex-wrap: wrap; gap: 5px;"></div>
+                <!-- Search Input -->
+                <input type="text" id="custom-thread-search" placeholder="Search friends or groups..." onkeyup="filterCustomThreads()" autocomplete="off" style="background: var(--background); border: 1px solid var(--border); color: var(--foreground); padding: 8px; outline: none; width: 100%; box-sizing: border-box; font-family: inherit; font-size: 0.85rem;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+                <!-- Available Friends/Groups List -->
+                <div id="available-custom-threads" style="overflow-y: auto; display: flex; flex-direction: column; gap: 2px; scrollbar-width: thin;">
+                    {% for thread in user_threads %}
+                        {% if thread.is_group %}
+                            <div class="custom-thread-option" data-id="{{ thread.id }}" data-name="{{ thread.name }}" onclick="selectCustomThread('{{ thread.id }}', '{{ thread.name|escapejs }} (Group)')" style="display: flex; align-items: center; gap: 10px; padding: 8px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='var(--background)'" onmouseout="this.style.backgroundColor='transparent'">
+                                <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; color: white;">👥</div>
+                                <span style="color: var(--foreground); font-size: 0.85rem;">{{ thread.name }} (Group)</span>
+                            </div>
+                        {% else %}
+                            {% for participant in thread.participants.all %}
+                                {% if participant != request.user %}
+                                    <div class="custom-thread-option" data-id="{{ thread.id }}" data-name="{{ participant.username }}" onclick="selectCustomThread('{{ thread.id }}', '@{{ participant.username|escapejs }}')" style="display: flex; align-items: center; gap: 10px; padding: 8px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='var(--background)'" onmouseout="this.style.backgroundColor='transparent'">
+                                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; color: white; font-size: 0.7rem; font-weight: bold;">
+                                            {% if participant.profile.profile_picture %}
+                                                <img src="{{ participant.profile.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% else %}
+                                                {{ participant.username.0|upper }}
+                                            {% endif %}
+                                        </div>
+                                        <span style="color: var(--foreground); font-size: 0.85rem;">@{{ participant.username }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <!-- Hidden inputs (This is what actually sends the data to Django) -->
+                <div id="hidden-custom-inputs"></div>
+            </div>
+            <!-- HIDDEN CUSTOM THREAD CHECKBOXES -->
+            <div id="customThreadsContainer" style="display: none; flex-direction: column; gap: 10px; max-height: 120px; overflow-y: auto; padding: 10px; border: 1px solid var(--border); background: var(--muted); scrollbar-width: thin;">
+                <div style="font-size: 0.8rem; color: var(--muted-foreground); margin-bottom: 5px;">Select who can see this story:</div>
+                {% for thread in user_threads %}
+                    <label style="display: flex; align-items: center; gap: 10px; color: var(--foreground); font-size: 0.85rem; cursor: pointer;">
+                        <input type="checkbox" name="custom_threads" value="{{ thread.id }}" style="cursor: pointer;">
+                        {% if thread.is_group %}
+                            𐦂𖨆𐀪𖠋𐀪𐀪 {{ thread.name }} (Group)
+                        {% else %}
+                            {% for participant in thread.participants.all %}
+                                {% if participant != request.user %}
+                                    𖠋 @{{ participant.username }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </label>
+                {% empty %}
+                    <div style="font-size: 0.8rem; color: var(--muted-foreground); font-style: italic;">No active conversations found.</div>
+                {% endfor %}
+            </div>
+            <!-- SUBMIT BUTTON -->
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                <button type="button" onclick="document.getElementById('addStoryModal').style.display='none'" style="background: transparent; color: var(--muted-foreground); border: 1px solid var(--muted-foreground); padding: 10px 20px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;">
+                    Cancel
+                </button>
+                <!-- Disable ONLY if both limits are out -->
+                <button type="submit" {% if text_left == 0 and image_left == 0 %}disabled{% endif %} style="background: var(--primary); color: white; border: 1px solid var(--primary); padding: 10px 20px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; {% if text_left == 0 and image_left == 0 %}opacity: 0.5; cursor: not-allowed;{% endif %}">
+                    Post Story
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<!-- Story viewer(hidden) -->
+<div id="storyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+    
+    <!-- Close button -->
+    <button class= "close-story" onclick="closeStory()">✕</button>
+    
+    <div style="position: relative; width: 100%; max-width: 450px; height: 80vh; background-color: var(--background); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;">
+        
+        <!-- Progress bar for the 15 second limit -->
+        <div id="story-progress-container" style="display: flex; gap: 4px; padding: 10px; position: absolute; top: 0; width: 100%; z-index: 5; box-sizing: border-box;">
+            <!-- JS injects progress bars here -->
+        </div>
+    
+        <!-- Header (Profile Info) -->
+        <div style="position: absolute; top: 25px; left: 0; width: 100%; padding: 10px; z-index: 5; display: flex; align-items: center; gap: 10px;">
+            <div id="story-author-pic" style="width: 35px; height: 35px; border-radius: 50%; background-color: var(--muted); background-size: cover; background-position: center;"></div>
+            <strong id="story-author-name" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);"></strong>
+        </div>
+    
+        <!-- Left/Right click for nav -->
+        <div onclick="prevStory()" style="position: absolute; left: 0; top: 0; width: 30%; height: 100%; z-index: 4; cursor: w-resize;"></div>
+        <div onclick="nextStory()" style="position: absolute; right: 0; top: 0; width: 70%; height: 100%; z-index: 4; cursor: e-resize;"></div>
+    
+        <!-- Story content (Image or Text) -->
+        <div id="story-content-area" style="flex-grow: 1; display: flex; justify-content: center; align-items: center; background-size: cover; background-position: center; padding: 20px; text-align: center;">
+            <p id="story-text" style="color: white; font-size: 1.5rem; font-weight: bold; text-shadow: 0 2px 5px rgba(0,0,0,0.8); margin: 0; z-index: 2; pointer-events: none;"></p>
+        </div>
+    
+        <!-- Bottom interactive bar -->
+        <div style="padding: 15px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); position: absolute; bottom: 0; width: 100%; z-index: 10; display: flex; gap: 10px; box-sizing: border-box;">
+            
+            <!-- Reply form -->
+            <input type="text" id="story-reply-input" placeholder="Reply..." style="flex-grow: 1; background: transparent; border: 1px solid rgba(255,255,255,0.5); border-radius: 20px; padding: 10px 15px; color: white; outline: none;">
+            
+            <button id="story-like-btn" onclick="likeCurrentStory()">
+                ❤︎
+            </button>
+            
+            <!-- Delete button -->
+            <button id="story-delete-btn" onclick="deleteCurrentStory()" style="display: none; background: #ef4444; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">
+                Delete
+            </button>
+            <button id="story-viewers-btn" onclick="openViewersList()" style="display: none; background: transparent; border: 1px solid rgba(255,255,255,0.5); color: white; padding: 10px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; flex-grow: 1; text-align: left; transition: background 0.2s;">
+            𓂀 Views
+            </button>
+        </div>
+    
+    </div>
+</div>
 
 {% endblock %}

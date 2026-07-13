@@ -31,6 +31,18 @@
                 </form>
                 {% endif %}
             </div>
+            {% if request.user == target_user %}
+            <div style="margin-top: 30px; padding: 20px; border: 1px solid #ef4444; background-color: rgba(239, 68, 68, 0.05); text-align: center; margin-bottom: 30px;">
+                <h3 style="color: #ef4444; margin: 0 0 10px 0; text-transform: uppercase; font-size: 1rem;">Danger Zone</h3>
+                <p style="color: var(--muted-foreground); font-size: 0.85rem; margin-bottom: 15px;">
+                    Press this button to delete your account.
+                </p>
+                <!-- opens the confirmation to delete account -->
+                <button type="button" onclick="document.getElementById('deleteAccountModal').style.display='flex'" style="background-color: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 10px 20px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                    Delete Account
+                </button>
+            </div>
+            {% endif %}
 
             <form method="POST" action="{% url 'update_profile' %}" id="picture-form" enctype="multipart/form-data" style="display: none; gap: 10px; margin-bottom: 20px; flex-direction: column; align-items: center;">
                 {% csrf_token %}
@@ -166,6 +178,96 @@
             {% endif %}
         </div>
     </div>
+    <!-- PROFILE SELECTION TABS -->
+    <!-- We use flex: 1 on 4 items so they perfectly split the space 25% each -->
+    <div style="display: flex; border-bottom: 1px solid var(--border); width: 100%; box-sizing: border-box; background-color: var(--muted); margin-bottom: 20px;">
+        <a href="?tab=posts" style="flex: 1; text-align: center; padding: 15px; text-decoration: none; color: {% if current_tab == 'posts' or not current_tab %}var(--primary){% else %}var(--muted-foreground){% endif %}; font-weight: bold; border-bottom: {% if current_tab == 'posts' or not current_tab %}2px solid var(--primary){% else %}none{% endif %}; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='var(--background)'" onmouseout="this.style.backgroundColor='transparent'">
+            ✎🗒 ˎˊ˗ Posts
+        </a>
+        <a href="?tab=replies" style="flex: 1; text-align: center; padding: 15px; text-decoration: none; color: {% if current_tab == 'replies' %}var(--primary){% else %}var(--muted-foreground){% endif %}; font-weight: bold; border-bottom: {% if current_tab == 'replies' %}2px solid var(--primary){% else %}none{% endif %}; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='var(--background)'" onmouseout="this.style.backgroundColor='transparent'">
+            💬 Replies
+        </a>
+        <a href="?tab=liked" style="flex: 1; text-align: center; padding: 15px; text-decoration: none; color: {% if current_tab == 'liked' %}var(--primary){% else %}var(--muted-foreground){% endif %}; font-weight: bold; border-bottom: {% if current_tab == 'liked' %}2px solid var(--primary){% else %}none{% endif %}; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='var(--background)'" onmouseout="this.style.backgroundColor='transparent'">
+            ❤︎ Liked
+        </a>
+        <a href="?tab=disliked" style="flex: 1; text-align: center; padding: 15px; text-decoration: none; color: {% if current_tab == 'disliked' %}#ef4444{% else %}var(--muted-foreground){% endif %}; font-weight: bold; border-bottom: {% if current_tab == 'disliked' %}2px solid #ef4444{% else %}none{% endif %}; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='var(--background)'" onmouseout="this.style.backgroundColor='transparent'">
+            🛇 Disliked
+        </a>
+    </div>
+
+    <!-- FEED CONTENT -->
+    <div style="width: 100%;">
+        {% for item in page_obj %}
+            
+            <div style="border: 1px solid var(--border); padding: 20px; margin-bottom: 15px; background-color: var(--background); transition: border-color 0.2s ease;" onmouseover="this.style.borderColor='var(--muted-foreground)'" onmouseout="this.style.borderColor='var(--border)'">
+                
+                {% if current_tab == 'replies' %}
+                    <!-- HOW A REPLY LOOKS -->
+                    <div style="color: var(--muted-foreground); font-size: 0.85rem; margin-bottom: 10px;">
+                        ↳ Replying to <strong style="color: var(--foreground);">@{{ item.post.author.username }}</strong>'s post
+                    </div>
+                    <p style="margin: 0 0 15px 0; line-height: 1.6; color: var(--foreground);">
+                        {{ item.content }}
+                    </p>
+                    <!-- Shortcut Button for Replies (Anchors directly to the comment) -->
+                    <a href="{% url 'postDetail' item.post.id %}#comment-{{ item.id }}" style="display: inline-block; background-color: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 6px 16px; text-decoration: none; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                        Go to Reply ➔
+                    </a>
+
+                {% else %}
+                    <!-- HOW A POST LOOKS (For Posts, Liked, and Disliked tabs) -->
+                    <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px;">
+                        <strong style="color: var(--foreground);">{{ item.author.username }}</strong>
+                        <span style="color: var(--muted-foreground); font-size: 0.85rem;">{{ item.smart_date }}</span>
+                    </div>
+                    <p style="margin: 0 0 15px 0; line-height: 1.6; color: var(--foreground);">
+                        {{ item.content }}
+                    </p>
+                    <!-- Shortcut Button for Posts -->
+                    <a href="{% url 'postDetail' item.id %}" style="display: inline-block; background-color: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 6px 16px; text-decoration: none; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                        Go to Post ➔
+                    </a>
+                {% endif %}
+
+            </div>
+
+        {% empty %}
+            <div style="padding: 40px; text-align: center; color: var(--muted-foreground); font-style: italic; border: 1px dashed var(--border);">
+                Nothing to see here yet.
+            </div>
+        {% endfor %}
+        
+        <!-- Pagination controls for the profile -->
+        <div class="pagination-controls" style="padding: 20px; display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; border-top: 1px solid var(--border); margin-top: 15px;">
+            
+            <!-- going back to newest page/current -->
+            {% if page_obj.number > 2 %}
+                <!-- Note: If this is a search page, add your search query parameter here too! -->
+                <a href="?page=1" style="color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--primary); padding: 6px 12px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                    « First
+                </a>
+            {% endif %}
+
+           <!-- go back to previous basically -->
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" style="color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--primary); padding: 6px 12px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                    ‹ Previous
+                </a>
+            {% endif %}
+
+            <!-- index of where you are -->
+            <span style="color: var(--muted-foreground); font-size: 0.85rem; font-family: 'Share Tech Mono', monospace;">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            <!-- checking older post to limit how much posts you see in one page -->
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" style="color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--primary); padding: 6px 12px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                    Next ›
+                </a>
+            {% endif %}
+        </div>
+    </div>
 </main>
 
 <script>
@@ -184,4 +286,34 @@
         }
     }
 </script>
+
+<!-- wanna delete account fr -->
+<div id="deleteAccountModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(9, 14, 23, 0.85); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: var(--background); border: 1px solid #ef4444; width: 450px; max-width: 90%; padding: 30px; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.2); text-align: center;">
+        <h3 style="color: #ef4444; margin: 0 0 15px 0; text-transform: uppercase; font-size: 1.2rem; letter-spacing: 1px;">Confirm Deletion</h3>
+        
+        <p style="color: var(--foreground); font-size: 1rem; line-height: 1.5; margin-bottom: 30px;">
+            This button deletes your account forever. 
+        </p>
+        <p style="color: var(--foreground); font-size: 1rem; line-height: 1.5; margin-bottom: 30px;">
+            Are you sure this is something you want to do?
+        </p>
+        
+        <div style="display: flex; justify-content: center; gap: 15px;">
+            <!-- Cancel's the whole process -->
+            <button class="cancel-delete-account-button" type="button" onclick="document.getElementById('deleteAccountModal').style.display='none'">
+                Cancel
+            </button>
+            
+            <!-- bye bye form -->
+            <form method="POST" action="{% url 'delete_account' %}" style="margin: 0;">
+                {% csrf_token %}
+                <button class="delete-account-final-button" type="submit">
+                    Yes, Delete My Account
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
 {% endblock %}

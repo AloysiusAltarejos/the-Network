@@ -6,6 +6,7 @@ from numpy import diff
 from PIL import Image
 from django.utils import timezone
 import io, sys
+from datetime import timedelta
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -19,13 +20,10 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Profile"
     def save(self, *args, **kwargs):
+        if self.profile_picture and getattr(self.profile_picture, 'file', None):
+            if self.profile_picture.size > 1048576:
+                self.profile_picture = compress_to_1mb(self.profile_picture)
         super().save(*args, **kwargs)
-        if self.profile_picture:
-            img = Image.open(self.profile_picture.path)
-            if img.height > 300 or img.width > 300:
-                output_size = (300, 300)
-                img.thumbnail(output_size) 
-                img.save(self.profile_picture.path, quality=85)
     @property
     def unread_message_count(self):
         from .models import Message
@@ -36,7 +34,7 @@ class Profile(models.Model):
         ).exclude(
             read_by=self.user
         ).exclude(
-            thread__muted_by=self.user # NEW: Ignores messages if the user muted the thread!
+            thread__muted_by=self.user
         ).count()
 
 class Post(models.Model):
@@ -52,22 +50,14 @@ class Post(models.Model):
     #image
     image = models.ImageField(upload_to='post_images/', blank=True, null=True)
     def save(self, *args, **kwargs):
-        if self.image and not self.id:
-            img = Image.open(self.image)
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
-            img.thumbnail((800, 800))
-            output = io.BytesIO()
-            img.save(output, format='JPEG', quality=30, optimize=True)
-            output.seek(0)
-            self.image = InMemoryUploadedFile(
-                output, 'ImageField', 
-                f"{self.image.name.split('.')[0]}.jpg", 
-                'image/jpeg', sys.getsizeof(output), None
-            )
+        if self.image and getattr(self.image, 'file', None):
+            if self.image.size > 1048576:
+                self.image = compress_to_1mb(self.image)
         super().save(*args, **kwargs)
-    #extra
+
+    #extra post details
     is_hidden = models.BooleanField(default=False)
+    followers_only = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at'] 
@@ -112,9 +102,10 @@ class Notification(models.Model):
     )
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_notifications')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True)
-    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    post = models.ForeignKey(Post, null=True, blank=True, on_delete=models.CASCADE)
+    comment = models.ForeignKey('Comment', null=True, blank=True, on_delete=models.CASCADE)
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    story = models.ForeignKey('Story', null=True, blank=True, on_delete=models.CASCADE)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     is_hidden = models.BooleanField(default=False)
@@ -125,7 +116,7 @@ class Notification(models.Model):
         return f"{self.sender.username} -> {self.recipient.username} ({self.notification_type})"
     
 class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -150,13 +141,10 @@ class Thread(models.Model):
     def __str__(self):
         return self.name if self.is_group else f"Thread {self.id}"
     def save(self, *args, **kwargs):
+        if self.group_picture and getattr(self.group_picture, 'file', None):
+            if self.group_picture.size > 1048576:
+                self.group_picture = compress_to_1mb(self.group_picture)
         super().save(*args, **kwargs)
-        if self.group_picture:
-            img = Image.open(self.group_picture.path)
-            if img.height > 400 or img.width > 400:
-                output_size = (400, 400)
-                img.thumbnail(output_size)
-                img.save(self.group_picture.path, quality=85, optimize=True)
 
 class Message(models.Model):
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name='messages')
@@ -186,3 +174,71 @@ class ThreadNickname(models.Model):
 
     class Meta:
         unique_together = ('thread', 'user')
+
+class Story(models.Model):
+    VISIBILITY_CHOICES = [
+        ('public', 'Public'),
+        ('followers', 'Followers Only'),
+        ('custom', 'Custom (Threads)')
+    ]
+    
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stories')
+    image = models.ImageField(upload_to='stories/', blank=True, null=True)
+    text_content = models.TextField(blank=True, max_length=500)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    visibility = models.CharField(max_length=15, choices=VISIBILITY_CHOICES, default='public')
+    
+    # let's people in groupchat view your stories
+    allowed_threads = models.ManyToManyField('Thread', blank=True, related_name='visible_stories')
+    likes = models.ManyToManyField(User, related_name='liked_stories', blank=True)
+
+    #compressor
+    def save(self, *args, **kwargs):
+        if self.image and getattr(self.image, 'file', None):
+            if self.image.size > 1048576:
+                self.image = compress_to_1mb(self.image)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_active(self):
+        return self.created_at >= timezone.now() - timedelta(hours=24)
+
+class StoryView(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='views')
+    viewer = models.ForeignKey(User, on_delete=models.CASCADE)
+    viewed_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('story', 'viewer')
+
+# the model that compress large pics to 1mb limit
+def compress_to_1mb(image_field):
+    max_bytes = 1048576 
+    
+    img = Image.open(image_field)
+    if img.mode != 'RGB':
+        img = img.convert('RGB')
+        
+    output = io.BytesIO()
+    quality = 90
+    
+    img.save(output, format='JPEG', quality=quality, optimize=True)
+    
+    while output.tell() > max_bytes and quality > 20:
+        output.seek(0)
+        output.truncate()
+        
+        new_width = int(img.width * 0.85)
+        new_height = int(img.height * 0.85)
+        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        quality -= 10
+        img.save(output, format='JPEG', quality=quality, optimize=True)
+        
+    output.seek(0)
+    return InMemoryUploadedFile(
+        output, 'ImageField', 
+        f"{image_field.name.split('.')[0]}.jpg", 
+        'image/jpeg', sys.getsizeof(output), None
+    )

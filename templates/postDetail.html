@@ -24,19 +24,16 @@
                 <span style="color: var(--muted-foreground); font-size: 0.9rem;">@{{ post.author.username }} &bull; {{ post.smart_date }}</span>
             </div>
             <p style="margin: 0 0 20px 0; font-size: 1.2rem; line-height: 1.6; color: var(--foreground); word-wrap: break-word;">{{ post.content }}</p>
+            <!-- main post details mostly like and dislike  -->
             <div style="display: flex; gap: 30px; color: var(--muted-foreground); font-size: 0.9rem; margin-bottom: 10px; transition: color 0.3s ease;">
-                <form method="POST" action="{% url 'toggle_like' post.id %}" style="margin: 0; font-size: 20px;">
-                    {% csrf_token %}
-                    <button type="submit" style="background: none; border: none; cursor: pointer; color: {% if request.user in post.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}; font: inherit; padding: 0; display: flex; align-items: center; gap: 8px; transition: color 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='{% if request.user in post.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}'">
-                        ❤︎⁠ {{ post.likes.count }}
+                <div style="display: flex; gap: 30px; color: var(--muted-foreground); font-size: 0.9rem; margin-bottom: 10px; transition: color 0.3s ease;">
+                    <button type="button" id="post-like-btn-{{ post.id }}" onclick="togglePostInteraction({{ post.id }}, 'like')" style="background: none; border: none; cursor: pointer; color: {% if request.user in post.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}; font: inherit; padding: 0; display: flex; align-items: center; gap: 8px; transition: color 0.3s ease, transform 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='{% if request.user in post.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}'">
+                        ❤︎⁠ <span id="post-like-count-{{ post.id }}">{{ post.likes.count }}</span>
                     </button>
-                </form>
-                <form method="POST" action="{% url 'toggle_dislike' post.id %}" style="margin: 0; font-size: 20px; transition: color 0.3s ease;">
-                    {% csrf_token %}
-                    <button type="submit" style="background: none; border: none; cursor: pointer; color: {% if request.user in post.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}; font: inherit; padding: 0; display: flex; align-items: center; gap: 8px; transition: color 0.2s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='{% if request.user in post.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}'">
-                        🛇 {{ post.dislikes.count }}
+                    <button type="button" id="post-dislike-btn-{{ post.id }}" onclick="togglePostInteraction({{ post.id }}, 'dislike')" style="background: none; border: none; cursor: pointer; color: {% if request.user in post.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}; font: inherit; padding: 0; display: flex; align-items: center; gap: 8px; transition: color 0.3s ease, transform 0.2s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='{% if request.user in post.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}'">
+                        🛇 <span id="post-dislike-count-{{ post.id }}">{{ post.dislikes.count }}</span>
                     </button>
-                </form>
+                </div>
             </div>
             {% if post.image %}
                 <div style="margin-bottom: 20px; border: 1px solid var(--border); overflow: hidden;">
@@ -113,20 +110,15 @@
                             </div>
                         </div>
                     </div>
+                    <!--This section is for the comments or so called replies in the posts.-->>
                     <p style="margin: 10px 0; color: var(--foreground); line-height: 1.5;">{{ comment.content }}</p>
                     <div style="display: flex; align-items: center; gap: 20px; margin-top: 10px;">
-                        <form method="POST" action="{% url 'toggle_comment_like' comment.id %}" style="margin: 0;">
-                            {% csrf_token %}
-                            <button type="submit" style="background: none; border: none; cursor: pointer; color: {% if request.user in comment.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 5px; transition: color 0.3s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='{% if request.user in comment.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}'">
-                                ❤︎⁠ {{ comment.likes.count }}
-                            </button>
-                        </form>
-                        <form method="POST" action="{% url 'toggle_comment_dislike' comment.id %}" style="margin: 0;">
-                            {% csrf_token %}
-                            <button type="submit" style="background: none; border: none; cursor: pointer; color: {% if request.user in comment.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 5px; transition: color 0.3s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='{% if request.user in comment.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}'">
-                                🛇 {{ comment.dislikes.count }}
-                            </button>
-                        </form>
+                        <button type="button" id="comment-like-btn-{{ comment.id }}" onclick="toggleCommentInteraction({{ comment.id }}, 'like')" style="background: none; border: none; cursor: pointer; color: {% if request.user in comment.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 5px; transition: color 0.3s ease, transform 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='{% if request.user in comment.likes.all %}var(--primary){% else %}var(--muted-foreground){% endif %}'">
+                            ❤︎⁠ <span id="comment-like-count-{{ comment.id }}">{{ comment.likes.count }}</span>
+                        </button>
+                        <button type="button" id="comment-dislike-btn-{{ comment.id }}" onclick="toggleCommentInteraction({{ comment.id }}, 'dislike')" style="background: none; border: none; cursor: pointer; color: {% if request.user in comment.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 5px; transition: color 0.3s ease, transform 0.2s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='{% if request.user in comment.dislikes.all %}#ef4444{% else %}var(--muted-foreground){% endif %}'">
+                            🛇 <span id="comment-dislike-count-{{ comment.id }}">{{ comment.dislikes.count }}</span>
+                        </button>
                         <button onclick="toggleReplyForm('reply-box-{{ comment.id }}')" style="background: none; border: none; color: var(--muted-foreground); font-size: 0.85rem; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 5px; transition: color 0.3s ease;" onmouseover="this.style.color='#39FF14'" onmouseout="this.style.color='var(--muted-foreground)'">
                             💬 Reply
                         </button>
@@ -144,6 +136,35 @@
         {% empty %}
             <p style="color: var(--muted-foreground); text-align: center; margin-top: 40px; font-style: italic;">No replies yet. Initialize the thread.</p>
         {% endfor %}
+        <!-- makes for only small stuff done  -->
+        <div class="pagination-controls" style="padding: 20px; display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; border-top: 1px solid var(--border); margin-top: 15px;">
+            <!-- 1. Go to First Page -->
+            {% if page_obj.number > 2 %}
+                <!-- Notice how we added tab={{ current_tab }} to the URL -->
+                <a href="?tab={{ current_tab }}&page=1" style="color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--primary); padding: 6px 12px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                    « First
+                </a>
+            {% endif %}
+
+            <!-- 2. Go to Previous Page -->
+            {% if page_obj.has_previous %}
+                <a href="?tab={{ current_tab }}&page={{ page_obj.previous_page_number }}" style="color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--primary); padding: 6px 12px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                    ‹ Previous
+                </a>
+            {% endif %}
+
+            <!-- 3. Current Page Indicator -->
+            <span style="color: var(--muted-foreground); font-size: 0.85rem; font-family: 'Share Tech Mono', monospace;">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            <!-- 4. Go to Next Page -->
+            {% if page_obj.has_next %}
+                <a href="?tab={{ current_tab }}&page={{ page_obj.next_page_number }}" style="color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--primary); padding: 6px 12px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='var(--primary-foreground)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary)';">
+                    Next ›
+                </a>
+            {% endif %}
+        </div>
     </div>
 </main>
 
@@ -155,6 +176,92 @@
         } else {
             form.style.display = 'none';
         }
+    }
+
+    // Handles the Main Post Interactions
+    function togglePostInteraction(postId, action) {
+        fetch(`/post/${postId}/${action}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Accept': 'application/json' 
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const likeBtn = document.getElementById(`post-like-btn-${postId}`);
+            const likeCount = document.getElementById(`post-like-count-${postId}`);
+            const dislikeBtn = document.getElementById(`post-dislike-btn-${postId}`);
+            const dislikeCount = document.getElementById(`post-dislike-count-${postId}`);
+
+            likeCount.innerText = data.likes;
+            dislikeCount.innerText = data.dislikes;
+
+            const targetBtn = action === 'like' ? likeBtn : dislikeBtn;
+            targetBtn.style.transform = 'scale(1.4)';
+            setTimeout(() => { targetBtn.style.transform = 'scale(1)'; }, 200);
+
+            if (data.status === 'liked') {
+                likeBtn.style.color = 'var(--primary)';
+                likeBtn.setAttribute('onmouseout', "this.style.color='var(--primary)'");
+                dislikeBtn.style.color = 'var(--muted-foreground)';
+                dislikeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            } else if (data.status === 'unliked') {
+                likeBtn.style.color = 'var(--muted-foreground)';
+                likeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            } else if (data.status === 'disliked') {
+                dislikeBtn.style.color = '#ef4444';
+                dislikeBtn.setAttribute('onmouseout', "this.style.color='#ef4444'");
+                likeBtn.style.color = 'var(--muted-foreground)';
+                likeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            } else if (data.status === 'undisliked') {
+                dislikeBtn.style.color = 'var(--muted-foreground)';
+                dislikeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            }
+        });
+    }
+
+    // Handles the Comments Interactions
+    function toggleCommentInteraction(commentId, action) {
+        fetch(`/comment/${commentId}/${action}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const likeBtn = document.getElementById(`comment-like-btn-${commentId}`);
+            const likeCount = document.getElementById(`comment-like-count-${commentId}`);
+            const dislikeBtn = document.getElementById(`comment-dislike-btn-${commentId}`);
+            const dislikeCount = document.getElementById(`comment-dislike-count-${commentId}`);
+
+            likeCount.innerText = data.likes;
+            dislikeCount.innerText = data.dislikes;
+
+            const targetBtn = action === 'like' ? likeBtn : dislikeBtn;
+            targetBtn.style.transform = 'scale(1.4)';
+            setTimeout(() => { targetBtn.style.transform = 'scale(1)'; }, 200);
+
+            if (data.status === 'liked') {
+                likeBtn.style.color = 'var(--primary)';
+                likeBtn.setAttribute('onmouseout', "this.style.color='var(--primary)'");
+                dislikeBtn.style.color = 'var(--muted-foreground)';
+                dislikeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            } else if (data.status === 'unliked') {
+                likeBtn.style.color = 'var(--muted-foreground)';
+                likeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            } else if (data.status === 'disliked') {
+                dislikeBtn.style.color = '#ef4444';
+                dislikeBtn.setAttribute('onmouseout', "this.style.color='#ef4444'");
+                likeBtn.style.color = 'var(--muted-foreground)';
+                likeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            } else if (data.status === 'undisliked') {
+                dislikeBtn.style.color = 'var(--muted-foreground)';
+                dislikeBtn.setAttribute('onmouseout', "this.style.color='var(--muted-foreground)'");
+            }
+        });
     }
 </script>
 {% endblock %}

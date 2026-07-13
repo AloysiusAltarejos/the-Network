@@ -27,19 +27,34 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8re@f+u3o4+f@2a6r6+28_-9mg4off&@u0ry_vshdlt7%$sa%8'
+SECRET_KEY = os.environ.get("SECRET_KEY", "replace-this-in-production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Turns off the yellow error screens for the public
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "DENY"
+    SECURE_REFERRER_POLICY = "same-origin"
 
 ALLOWED_HOSTS = [
-    '67th.aloysius-altz.com', 
-    'web-production-a31ea.up.railway.app',
-    '127.0.0.1',                           
-    'localhost',
-    ]
+    "67th.aloysius-altz.com",
+    "web-production-a31ea.up.railway.app",
+    "127.0.0.1",
+    "localhost",
+]
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
 
 LOGIN_URL = '/login/'
 
@@ -145,9 +160,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/network/static/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

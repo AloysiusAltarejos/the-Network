@@ -54,7 +54,14 @@ urlpatterns = [
     path('comment/<int:comment_id>/hide/', views.toggle_hide_comment, name='toggle_hide_comment'),
     path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
     path('comment/<int:comment_id>/report/', views.report_comment, name='report_comment'),
-    path('messages/settings/<int:thread_id>/', views.thread_settings, name='thread_settings')
+    path('messages/settings/<int:thread_id>/', views.thread_settings, name='thread_settings'),
+    path('account/delete/', views.delete_account, name='delete_account'),
+    path('story/<int:story_id>/view/', views.mark_story_viewed, name='mark_story_viewed'),
+    path('story/<int:story_id>/delete/', views.delete_story, name='delete_story'),
+    path('story/<int:story_id>/reply/', views.reply_to_story, name='reply_to_story'),
+    path('story/create/', views.create_story, name='create_story'),
+    path('story/<int:story_id>/viewers/', views.get_story_viewers, name='get_story_viewers'),
+    path('story/<int:story_id>/like/', views.like_story, name='like_story')
 ]
 
 if settings.DEBUG:
