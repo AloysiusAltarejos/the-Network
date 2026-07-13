@@ -8,7 +8,7 @@ from .forms import RegisterForm
 from django.db.models import Q, Count 
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Profile, Post, Report, Notification, Comment, Message, Thread, ThreadNickname, Story, StoryView
-import re, json
+import re, json, time
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -61,16 +61,34 @@ def update_profile(request):
         profile, created = Profile.objects.get_or_create(user=request.user)
         field_to_update = request.POST.get('field')
         new_value = request.POST.get('value')
+        
         if field_to_update == 'profile_picture' and request.FILES.get('image_upload'):
+            now = time.time()
+            pfp_history = request.session.get('pfp_history', [])
+            pfp_history = [t for t in pfp_history if now - t < 86400]
+            
+            if len(pfp_history) >= 2:
+                messages.error(request, "You can only change your profile picture 2 times a day.")
+                return redirect('profile')
+            
+            if profile.profile_picture:
+                profile.profile_picture.delete(save=False)
+            
             profile.profile_picture = request.FILES['image_upload']
             profile.save()
+
+            pfp_history.append(now)
+            request.session['pfp_history'] = pfp_history
+            
             return redirect('profile')
+            
         elif field_to_update == 'remove_picture':
             if profile.profile_picture:
                 profile.profile_picture.delete(save=False) 
             profile.profile_picture = None
             profile.save()
             return redirect('profile')
+            
         if field_to_update == 'name':
             profile.name = new_value
         elif field_to_update == 'pronouns':
@@ -79,7 +97,9 @@ def update_profile(request):
             profile.location = new_value
         elif field_to_update == 'bio':
             profile.bio = new_value
+            
         profile.save()
+        
     return redirect('profile')
 
 def registration_view(request):

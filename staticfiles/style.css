@@ -288,6 +288,40 @@ button {
 /* =========================================
    6. LOGIN & REGISTRATION FORMS
 ========================================= */
+
+.auth-header {
+    display: flex;
+    justify-content: center;
+    gap: 15px; 
+    margin-bottom: 20px; 
+}
+
+.nav-item-entrance {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--primary);
+    color: var(--primary-foreground); 
+    text-decoration: none; 
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    border: 1px solid var(--primary);
+    border-radius: 4px; 
+    transition: all 0.2s ease; 
+    cursor: pointer;
+    text-align: center;
+}
+
+.nav-item-entrance:hover {
+    background-color: transparent; 
+    color: var(--primary); 
+}
+
+.nav-item-entrance:active {
+    transform: translateY(2px);
+}
+
 .auth-container {
     max-width: 400px;
     margin: 50px auto;
