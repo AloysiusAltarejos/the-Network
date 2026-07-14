@@ -583,7 +583,7 @@ def chat_thread(request, username):
     return render(request, 'messages.html', {
         'other_user': other_user, 
         'thread': thread,
-        'messages': messages_to_display,
+        'chat_messages': messages_to_display,
         'all_users': all_users
     })
 
@@ -749,8 +749,7 @@ def create_group_thread(request):
             return redirect('group_chat_thread', thread_id=thread.id)
             
     return redirect('inbox')
-            
-    return redirect('group_chat_thread', thread_id=thread.id)
+
 @login_required(login_url='login')
 def group_chat_thread(request, thread_id):
     thread = get_object_or_404(Thread, id=thread_id, participants=request.user)
@@ -771,7 +770,7 @@ def group_chat_thread(request, thread_id):
         
     return render(request, 'messages.html', {
         'thread': thread,
-        'messages': messages,
+        'chat_messages': messages,
         'all_users': all_users
     })
 

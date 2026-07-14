@@ -56,7 +56,7 @@
             </div>
         </div>
         <div id="chatLogArea" style="flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 10px; margin-bottom: 20px;">
-            {% for msg in messages %}
+            {% for msg in chat_messages %}
                 {% if msg.is_system %}
                     <div style="text-align: center; margin: 15px 0;">
                         <span style="background-color: var(--muted); color: var(--muted-foreground); padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; letter-spacing: 0.5px;">
