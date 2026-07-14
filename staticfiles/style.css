@@ -469,8 +469,52 @@ button {
     transform: scale(1.3), rotate(360deg);
     color: rgba(210, 4, 45, 0.9) !important;
 }
+
+.ajax-follow-btn {
+        padding: 6px 16px; 
+        font-weight: bold; 
+        letter-spacing: 1px; 
+        cursor: pointer; 
+        text-transform: uppercase; 
+        font-size: 0.75rem; 
+        transition: all 0.2s ease; 
+        border-radius: 4px;
+}
+
+.ajax-follow-btn.following {
+    background-color: transparent;
+    color: var(--muted-foreground);
+    border: 1px solid var(--muted-foreground);
+}
+
+.ajax-follow-btn.following:hover {
+    color: #ef4444;
+    border-color: #ef4444;
+}
+
+.ajax-follow-btn.not-following {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    border: 1px solid var(--primary);
+}
+
+.ajax-follow-btn.not-following:hover {
+    opacity: 0.9;
+}
+
 /* =========  7. RESPONSIVE DESIGN (for mobile and other screens)  ================*/
-@media (max-width: 768px) {
+@media (max-width: 768px){
+
+    .neon-title {
+        font-size: 22px; 
+        letter-spacing: 1px;
+        white-space: nowrap; 
+    }
+
+    .nav-toggle-btn {
+        font-size: 28px;
+        margin-top: 0;
+    }
 
     html {
         font-size: 14px;

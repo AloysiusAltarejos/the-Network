@@ -63,8 +63,8 @@
 
                     <!-- what feed to post it -->
                     <input type="hidden" name="visibility" id="visibilityInput" value="public">
-                    <button class="post-visibility-button" type="button" id="visibilityToggle" onclick="toggleVisibility()" style="color: var(--primary); border: 1px solid var(--primary); background-color: var(--background); padding: 6px 12px; font-family: inherit; font-size: 0.8rem; cursor: pointer; outline: none; margin-right: 15px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--muted)';" onmouseout="this.style.backgroundColor='var(--background)';">
-                         ✈︎ Public (Everyone)
+                    <button class="post-visibility-button" type="button" id="visibilityToggle" onclick="toggleVisibility()" style="color: var(--primary); border: 1px solid var(--primary); background-color: var(--background); padding: 6px 12px; font-family: inherit; font-size: 0.7rem; cursor: pointer; outline: none; margin-right: 15px; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='var(--muted)';" onmouseout="this.style.backgroundColor='var(--background)';">
+                         ✈︎ Public
                     </button>
 
                     <!--Post button-->
@@ -242,12 +242,12 @@
 
         if (input.value === 'public'){
             input.value = 'followers';
-            btn.innerHTML = '🔒︎ Followers Only';
+            btn.innerHTML = '🔒︎Followers';
             btn.style.color = 'rgba(234, 179, 8, 1)';
             btn.style.borderColor = 'rgba(234, 179, 8, 0.5)';
         } else{
             input.value = 'public';
-            btn.innerHTML = ' ✈︎ Public (Everyone)';
+            btn.innerHTML = ' ✈︎ Public';
             btn.style.color = 'var(--primary)';
             btn.style.borderColor = 'var(--primary)';
         }

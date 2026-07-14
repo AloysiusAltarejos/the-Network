@@ -56,9 +56,13 @@
         {% endif %}
 
         <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 25px; color: var(--muted-foreground); font-size: 0.9rem;">
-            <div><strong style="color: var(--foreground); font-size: 1.1rem;">{{ target_user.profile.following.count }}</strong> Following</div>
+            <div onclick="openNetworkModal('following')" style="cursor: pointer; transition: color 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-foreground)'">
+                <strong style="color: var(--foreground); font-size: 1.1rem;">{{ target_user.profile.following.count }}</strong> Following
+            </div>
             <div>|</div>
-            <div><strong style="color: var(--foreground); font-size: 1.1rem;">{{ target_user.profile.followers.count }}</strong> Followers</div>
+            <div onclick="openNetworkModal('followers')" style="cursor: pointer; transition: color 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-foreground)'">
+                <strong style="color: var(--foreground); font-size: 1.1rem;">{{ target_user.profile.followers.count }}</strong> Followers
+            </div>
         </div>
 
         {% if target_user != request.user %}
@@ -285,6 +289,60 @@
             if (editBtn) editBtn.style.display = 'inline';
         }
     }
+
+    function openNetworkModal(type){
+        const modal = document.getElementById('networkModal');
+        const title = document.getElementById('networkModalTitle');
+        const body = document.getElementById('networkModalBody');
+        
+        if (type === 'followers'){
+            title.innerText = 'Followers';
+            body.innerHTML = document.getElementById('followersListContent').innerHTML;
+        } else {
+            title.innerText = 'Following';
+            body.innerHTML = document.getElementById('followingListContent').innerHTML;
+        }
+
+        modal.style.display = 'flex';
+        attachAjaxFollowListeners();
+    }
+
+    function attachAjaxFollowListeners(){
+        document.querySelectorAll('#networkModalBody .ajax-follow-btn').forEach(button =>{
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('data-url');
+                const isFollowing = this.getAttribute('data-following') === 'true';
+
+                if (isFollowing){
+                    this.setAttribute('data-following', 'false');
+                    this.innerText = 'Follow';
+                    this.classList.remove('following');
+                    this.classList.add('not-following');
+                } else{
+                    this.setAttribute('data-following', 'true');
+                    this.innerText = 'Unfollow';
+                    this.classList.remove('not-following');
+                    this.classList.add('following');
+                }
+
+                fetch(url,{
+                    method: 'POST',
+                    headers:{
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).catch(error => console.error('Error toggling follow:', error));
+            });
+        });
+    }
+
+    window.addEventListener('click', function(event){
+        const modal = document.getElementById('networkModal');
+        if (event.target == modal){
+            modal.style.display = "none";
+        }
+    });
 </script>
 
 <!-- wanna delete account fr -->
@@ -315,5 +373,67 @@
         </div>
 
     </div>
+</div>
+
+<!-- network modal -->
+<div id="networkModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(9, 14, 23, 0.85); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: var(--background); border: 1px solid var(--border); width: 400px; max-width: 90%; max-height: 70vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);">
+        <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="networkModalTitle" style="margin: 0; text-transform: uppercase; font-size: 1.1rem; color: var(--foreground); letter-spacing: 1px;">Network</h3>
+            <button onclick="document.getElementById('networkModal').style.display='none'" style="background: none; border: none; color: var(--muted-foreground); font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--muted-foreground)'">&times;</button>
+        </div>
+        <div id="networkModalBody" style="padding: 0 20px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column;">
+        </div>
+    </div>
+</div>
+
+<!-- followers list -->
+<div id="followersListContent" style="display: none;">
+    {% for p in target_user.profile.followers.all %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border);">
+            <a href="{% url 'user_profile' p.user.username %}" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: var(--foreground);">
+                <div style="width: 45px; height: 45px; border-radius: 50%; overflow: hidden; background-color: var(--muted); display: flex; justify-content: center; align-items: center; border: 1px solid var(--border); font-weight: bold; font-family: monospace; font-size: 1.2rem;">
+                    {% if p.profile_picture %}
+                        <img src="{{ p.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        {{ p.user.username.0|upper }}
+                    {% endif %}
+                </div>
+                <strong style="font-size: 1rem; letter-spacing: 0.5px;">{{ p.user.username }}</strong>
+            </a>
+            {% if p.user != request.user %}
+                <button type="button" class="ajax-follow-btn {% if request.user.profile in p.followers.all %}following{% else %}not-following{% endif %}" 
+                        data-url="{% url 'toggle_follow' p.user.username %}" 
+                        data-following="{% if request.user.profile in p.followers.all %}true{% else %}false{% endif %}">
+                    {% if request.user.profile in p.followers.all %}Unfollow{% else %}Follow{% endif %}
+                </button>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<!-- followwing lists -->
+<div id="followingListContent" style="display: none;">
+    {% for p in target_user.profile.following.all %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border);">
+            <a href="{% url 'user_profile' p.user.username %}" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: var(--foreground);">
+                <div style="width: 45px; height: 45px; border-radius: 50%; overflow: hidden; background-color: var(--muted); display: flex; justify-content: center; align-items: center; border: 1px solid var(--border); font-weight: bold; font-family: monospace; font-size: 1.2rem;">
+                    {% if p.profile_picture %}
+                        <img src="{{ p.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        {{ p.user.username.0|upper }}
+                    {% endif %}
+                </div>
+                <strong style="font-size: 1rem; letter-spacing: 0.5px;">{{ p.user.username }}</strong>
+            </a>
+            {% if p.user != request.user %}
+                <button type="button" class="ajax-follow-btn {% if request.user.profile in p.followers.all %}following{% else %}not-following{% endif %}" 
+                        data-url="{% url 'toggle_follow' p.user.username %}" 
+                        data-following="{% if request.user.profile in p.followers.all %}true{% else %}false{% endif %}">
+                    {% if request.user.profile in p.followers.all %}Unfollow{% else %}Follow{% endif %}
+                </button>
+            {% endif %}
+        </div>
+    {% endfor %}
 </div>
 {% endblock %}
