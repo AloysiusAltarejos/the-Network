@@ -57,7 +57,7 @@ main {
 }
 
 #sidebarToggle {
-    justify-self: start;
+    font-size: 55px; 
 }
 
 #activityToggle {
@@ -513,6 +513,10 @@ button {
     .nav-toggle-btn {
         font-size: 28px;
         margin-top: 0;
+    }
+
+    #sidebarToggle {
+        font-size: 38px; 
     }
 
     html {
