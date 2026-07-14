@@ -57,12 +57,7 @@ main {
 }
 
 #sidebarToggle {
-    transform: scale(1.4); 
-    transform-origin: center; 
-}
-
-#sidebarToggle:hover {
-    transform: scale(2.2); 
+    justify-self: end;
 }
 
 #activityToggle {
