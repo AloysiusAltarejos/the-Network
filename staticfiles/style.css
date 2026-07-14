@@ -57,7 +57,7 @@ main {
 }
 
 #sidebarToggle {
-    justify-self: end;
+    justify-self: start;
 }
 
 #activityToggle {
