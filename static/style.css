@@ -57,7 +57,12 @@ main {
 }
 
 #sidebarToggle {
-    font-size: 55px; 
+    transform: scale(1.4); 
+    transform-origin: center; 
+}
+
+#sidebarToggle:hover {
+    transform: scale(2.2); 
 }
 
 #activityToggle {

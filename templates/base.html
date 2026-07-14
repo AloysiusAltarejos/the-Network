@@ -16,12 +16,12 @@
     <body style="font-family: 'Solway', 'Share Tech Mono'">
         <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
         <nav class="top-navbar">
-            <button id="sidebarToggle" class="nav-toggle-btn" style=" background: transparent; border: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">✵</button>
+            <button id="sidebarToggle" class="nav-toggle-btn" style=" background: transparent; border: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">𖤓</button>
             <h1 class="neon-title">
                 <a href="{% url 'home' %}" style="text-decoration: none; color: inherit;">The 67th Network</a>
             </h1>
             {% if request.user.is_authenticated %}
-                <button id="activityToggle" class="nav-toggle-btn" style="background: transparent; border: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">🕭</button>
+                <button id="activityToggle" class="nav-toggle-btn" style="background: transparent; border: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">🔔</button>
             {% else %}
                 <div style="width: 15px; flex-shrink: 0;"></div> 
             {% endif %}   
