@@ -383,7 +383,7 @@ button {
     align-items: center; 
     gap: 15px; color: 
     var(--muted-foreground); 
-    font-size: 1.2rem;
+    font-size: 1.5rem;
 }
 
 .image-text-input:hover{
