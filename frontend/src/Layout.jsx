@@ -208,7 +208,7 @@ export default function Layout() {
                                 className="nav-item logout-hover" 
                                 onClick={() => {
                                     localStorage.removeItem('isAuthenticated');
-                                    window.location.href = '/auth';
+                                    navigate('/auth'); 
                                 }}
                             >
                                 𓉞 Log out
