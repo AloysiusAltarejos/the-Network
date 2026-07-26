@@ -16,6 +16,23 @@ function formatMessageTime(dateString) {
     return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
 }
 
+
+function formatSeenStatus(seenByArray, isGroup) {
+    if (!seenByArray || seenByArray.length === 0) return 'Sent';
+    
+    if (!isGroup) {
+        return 'Seen'; 
+    }
+
+    if (seenByArray.length <= 3) {
+        return `Seen by ${seenByArray.join(', ')}`;
+    } else {
+        const firstThree = seenByArray.slice(0, 3).join(', ');
+        const remaining = seenByArray.length - 3;
+        return `Seen by ${firstThree} + ${remaining} others`;
+    }
+}
+
 export default function Inbox() {
     const [chats, setChats] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -142,12 +159,16 @@ export default function Inbox() {
                                 </div>
 
                                 {/* Unread Badge & Mute Indicator */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px', flexShrink: 0, marginLeft: '10px' }}>
                                     {chat.thread.is_muted && <span style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>🔇</span>}
                                     {chat.unread_count > 0 && (
-                                        <div style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)', fontSize: '0.75rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '12px' }}>
-                                            {chat.unread_count}
-                                        </div>
+                                        <div className="unread-dot" style={{ margin: 0, width: '12px', height: '12px' }}></div>
+                                    )}
+
+                                    {chat.last_message && chat.unread_count === 0 && (chat.last_message.is_me || chat.thread.is_group) && (
+                                        <span style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)', fontWeight: 'bold' }}>
+                                            {formatSeenStatus(chat.last_message.seen_by, chat.thread.is_group)}
+                                        </span>
                                     )}
                                 </div>
                             </Link>

@@ -56,6 +56,23 @@ export default function Layout() {
     const [rightMobileOpen, setRightMobileOpen] = useState(false);
     
     const [notifications, setNotifications] = useState([]);
+    const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+
+    useEffect(() => {
+        fetch(`${baseURL}/api/notifications/`, {
+            credentials: 'include'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.notifications) {
+                setNotifications(data.notifications);
+            }
+            if (data.unread_message_count !== undefined) {
+                setUnreadMessageCount(data.unread_message_count);
+            }
+        })
+        .catch(err => console.error("Failed to load notifications", err));
+    }, [baseURL]);
 
     useEffect(() => {
         fetch(`${baseURL}/api/notifications/`, {
@@ -188,20 +205,31 @@ export default function Layout() {
                 >
                     <h1 className="logo-title">The Network</h1>
                     
-                    {/* RESTORED: nav grouping without inline gaps, letting CSS handle it */}
                     <nav className="sidebar-nav">
                         <Link to="/home" className={`nav-item ${location.pathname.startsWith('/home') ? 'active' : ''}`}> 🏠︎ home</Link>   
                         <Link to="/profile" className={`nav-item ${location.pathname.startsWith('/profile') ? 'active' : ''}`}> 𖨆 Profile</Link>
                         
-                        {/* Note: Ensure your 'messages' link checks active state correctly */}
                         <Link to="/inbox" className={`nav-item ${location.pathname.startsWith('/inbox') ? 'active' : ''}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span>✉︎ Messages</span>
-                            {/* Assuming you will pass down or fetch unread_message_count later */}
+                            {unreadMessageCount > 0 && (
+                                <span className="notif-badge" style={{
+                                    backgroundColor: 'var(--primary)', 
+                                    color: 'var(--primary-foreground)', 
+                                    fontSize: '12px', 
+                                    width: '24px', 
+                                    height: '24px', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    fontFamily: 'inherit' 
+                                }}>
+                                    {unreadMessageCount}
+                                </span>
+                            )}
                         </Link>
                         
                         <Link to="/search" className={`nav-item ${location.pathname.startsWith('/search') ? 'active' : ''}`}>🔍︎ Search</Link>
                         
-                        {/* RESTORED: Logout button inside the nav block, using the exact classes */}
                         <div className="logout-btn" style={{ margin: 0 }}>
                             <button 
                                 type="submit" 
@@ -216,7 +244,6 @@ export default function Layout() {
                         </div>
                     </nav>
 
-                    {/* RESTORED: Footer exactly as it was, pushing up against the flex-grow of the nav */}
                     <div className="sidebar-footer">
                         <p>Made by: Aloysius Altarejos</p>
                         <p>Pulished in 2026</p>

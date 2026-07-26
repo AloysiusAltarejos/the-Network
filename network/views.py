@@ -327,8 +327,9 @@ def api_inbox(request):
         last_message = thread_messages.first()
         
         try:
-            unread_count = thread_messages.exclude(sender=user).filter(read=False).count()
-        except Exception:
+           unread_count = thread_messages.exclude(sender=user).exclude(read_by=user).count()
+        except Exception as e:
+            print(f"Error calculating unread count: {e}")
             unread_count = 0 
             
         partner = thread.participants.exclude(id=user.id).first() if not thread.is_group else None
@@ -352,17 +353,16 @@ def api_inbox(request):
             },
             'partner': {
                 'username': partner.username,
-                # (applies nickname or fallback name)
                 'name': nicknames.get(partner.id, partner.profile.name if hasattr(partner, 'profile') and partner.profile.name else partner.username),
                 'profile_picture': partner.profile.profile_picture.url if hasattr(partner, 'profile') and partner.profile.profile_picture else None,
             } if partner else None,
             'last_message': {
                 'content': last_message.content,
                 'sender_username': last_message.sender.username,
-                # (applies nickname to message preview)
                 'sender_name': nicknames.get(last_message.sender.id, last_message.sender.profile.name if hasattr(last_message.sender, 'profile') and last_message.sender.profile.name else last_message.sender.username),
                 'is_me': last_message.sender == user,
                 'created_at': last_message.created_at.isoformat(), 
+                'seen_by': [nicknames.get(u.id, u.username) for u in last_message.read_by.exclude(id=last_message.sender.id)] if last_message else []
             } if last_message else None,
             'unread_count': unread_count
         })
@@ -388,6 +388,10 @@ def api_thread(request, thread_id):
         return JsonResponse({'error': 'Message content required'}, status=400)
     
     messages = thread.messages.order_by('created_at')
+
+    last_msg = messages.last()
+    if last_msg and request.user != last_msg.sender:
+        last_msg.read_by.add(request.user)
     messages_data = []
     
     # (gets nicknames for current thread)
@@ -405,6 +409,12 @@ def api_thread(request, thread_id):
             'is_me': msg.sender == request.user,
             'created_at': msg.created_at.isoformat(),
         })
+
+        if msg == last_msg:
+            seen_users = msg.read_by.exclude(id=msg.sender.id)
+            msg_data['seen_by'] = [nicknames.get(u.id, u.username) for u in seen_users]
+            
+        messages_data.append(msg_data)
 
     participants_data = []
     for p in thread.participants.all():
@@ -529,8 +539,8 @@ def api_notifications(request):
             'post_id': n.post.id if n.post else None,
             'story_id': n.story.id if n.story else None,  
             'comment_id': n.comment.id if n.comment else None, 
-            # (checks if notification is read)
             'is_read': getattr(n, 'is_read', False) 
+            'unread_message_count': request.user.profile.unread_message_count
         })
         
     return JsonResponse({'notifications': notif_data})

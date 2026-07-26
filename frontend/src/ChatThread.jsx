@@ -19,6 +19,22 @@ function getCookie(name) {
     return cookieValue;
 }
 
+function formatSeenStatus(seenByArray, isGroup) {
+    if (!seenByArray || seenByArray.length === 0) return 'Sent';
+    
+    if (!isGroup) {
+        return 'Seen'; 
+    }
+
+    if (seenByArray.length <= 3) {
+        return `Seen by ${seenByArray.join(', ')}`;
+    } else {
+        const firstThree = seenByArray.slice(0, 3).join(', ');
+        const remaining = seenByArray.length - 3;
+        return `Seen by ${firstThree} + ${remaining} others`;
+    }
+}
+
 export default function ChatThread({ currentUserId }) {
     const { threadId } = useParams();
     const [thread, setThread] = useState(null);
@@ -196,51 +212,33 @@ export default function ChatThread({ currentUserId }) {
                         </p>
                     ) : (
                         displayedMessages.map((msg, idx) => {
-                            if (msg.is_system) {
-                                return (
-                                    <div key={idx} style={{ textAlign: 'center', margin: '15px 0' }}>
-                                        <span style={{ backgroundColor: 'var(--muted)', color: 'var(--muted-foreground)', padding: '4px 12px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                                            {msg.content}
-                                        </span>
-                                    </div>
-                                );
-                            }
-
+                            const isLastMessage = idx === displayedMessages.length - 1;
+                                                    
                             if (msg.is_me) {
                                 return (
                                     <div key={idx} className="message-bubble" style={{ alignSelf: 'flex-end', maxWidth: '60%', display: 'flex', flexDirection: 'column' }}>
-                                        {msg.created_at && (
-                                            <span style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem', marginBottom: '4px', alignSelf: 'flex-start' }}>
-                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                        {/* ... your existing timestamp and message bubble ... */}
+                                        
+                                        {/* NEW: Seen Status for the Author */}
+                                        {isLastMessage && msg.seen_by && (
+                                            <span style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem', marginTop: '4px', alignSelf: 'flex-end', fontWeight: 'bold' }}>
+                                                {formatSeenStatus(msg.seen_by, thread.is_group)}
                                             </span>
                                         )}
-                                        <div style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)', padding: '12px 16px', border: '1px solid var(--primary)', fontSize: '0.95rem', lineHeight: '1.5' }}>
-                                            {msg.content}
-                                        </div>
                                     </div>
                                 );
                             }
-
+                            
                             return (
                                 <div key={idx} className="message-bubble" style={{ alignSelf: 'flex-start', maxWidth: '75%', display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
-                                    <Link to={`/profile/${msg.sender_username}`} style={{ textDecoration: 'none', flexShrink: 0, display: 'block' }}>
-                                        <div style={{ width: '36px', height: '36px', backgroundColor: 'var(--muted)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--foreground)', fontSize: '0.9rem' }}>
-                                            {msg.sender_pic ? <img src={`${baseURL}${msg.sender_pic}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : msg.sender_username.charAt(0).toUpperCase()}
-                                        </div>
-                                    </Link>
-                                    <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                                        {msg.created_at && (
-                                            <span style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem', marginBottom: '4px', alignSelf: 'flex-end' }}>
-                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                                            </span>
-                                        )}
-                                        <div style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)', padding: '12px 16px', border: '1px solid var(--border)', fontSize: '0.95rem', lineHeight: '1.5', display: 'flex', flexDirection: 'column', minWidth: '140px' }}>
-                                            <Link to={`/profile/${msg.sender_username}`} style={{ textDecoration: 'none', color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.8rem', marginBottom: '4px' }}>
-                                                {msg.sender_display_name}
-                                            </Link>
-                                            <span style={{ marginBottom: '6px' }}>{msg.content}</span>
-                                        </div>
-                                    </div>
+                                    {/* ... your existing avatar and message bubble for other users ... */}
+                                    
+                                    {/* NEW: Seen Status for Groups (visible to everyone) */}
+                                    {isLastMessage && thread.is_group && msg.seen_by && (
+                                        <span style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem', marginTop: '4px', alignSelf: 'flex-start', fontWeight: 'bold' }}>
+                                            {formatSeenStatus(msg.seen_by, true)}
+                                        </span>
+                                    )}
                                 </div>
                             );
                         })
