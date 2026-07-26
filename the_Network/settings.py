@@ -59,6 +59,7 @@ LOGIN_URL = '/login/'
 
 INSTALLED_APPS = [
     'corsheaders',
+    'django.contrib.staticfiles',
     'cloudinary_storage',
     'cloudinary',
     'django.contrib.admin',
@@ -66,7 +67,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'network',
 ]
 
