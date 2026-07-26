@@ -464,6 +464,12 @@ def api_story_limits(request):
 @api_login_required
 def api_comment_action(request, pk, action):
     comment = get_object_or_404(Comment, pk=pk)
+
+    if action == 'delete':
+        if comment.author == request.user:
+            comment.delete()
+            return JsonResponse({'status': 'deleted'})
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     
     if action == 'like':
         if request.user in comment.likes.all():
@@ -543,7 +549,10 @@ def api_notifications(request):
             'unread_message_count': request.user.profile.unread_message_count
         })
         
-    return JsonResponse({'notifications': notif_data})
+    return JsonResponse({
+        'notifications': notif_data,
+        'unread_message_count': request.user.profile.unread_message_count
+    })
 
 # (handles notification read status)
 @csrf_exempt
@@ -910,7 +919,11 @@ def api_post_action(request, post_id, action):
         post = Post.objects.filter(id=post_id).first()
         if not post:
             return JsonResponse({'error': 'Post not found'}, status=404)
-
+        if action == 'delete':
+            if post.author == request.user:
+                post.delete()
+                return JsonResponse({'status': 'deleted'})
+            return JsonResponse({'error': 'Unauthorized'}, status=403)
         if action == 'like':
             if request.user in post.likes.all():
                 post.likes.remove(request.user)
