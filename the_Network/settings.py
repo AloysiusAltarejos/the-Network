@@ -14,10 +14,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
-import dj_database_url
-
-
 from pathlib import Path
+import dj_database_url
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,38 +30,23 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "replace-this-in-production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Turns off the yellow error screens for the public
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = "DENY"
-    SECURE_REFERRER_POLICY = "same-origin"
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.StaticFilesStorage",
-    },
+   "default": {
+       "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+   },
+   "staticfiles": {
+       "BACKEND": "whitenoise.storage.StaticFilesStorage",
+   },
 }
-
 ALLOWED_HOSTS = [
     "67th.aloysius-altz.com",
     "web-production-a31ea.up.railway.app",
-    "127.0.0.1",
-    "localhost",
+    'localhost',
+    '127.0.0.1'
 ]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024
@@ -74,6 +58,7 @@ LOGIN_URL = '/login/'
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'cloudinary_storage',
     'cloudinary',
     'django.contrib.admin',
@@ -85,8 +70,6 @@ INSTALLED_APPS = [
     'network',
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://67th.aloysius-altz.com']
-
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUD_NAME'),
     'API_KEY': os.environ.get('API_KEY'),
@@ -97,6 +80,7 @@ CLOUDINARY_STORAGE = {
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -110,7 +94,7 @@ ROOT_URLCONF = 'the_Network.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -128,12 +112,53 @@ WSGI_APPLICATION = 'the_Network.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
-        conn_max_age=600
+        default='postgres://aloys:Kupido100@localhost:5432/network_db', 
+        conn_max_age=600,
+        conn_health_checks=True,
     )
 }
+
+if not DEBUG:
+    # Security optimization
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SAMESITE = 'None'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "DENY"
+    SECURE_REFERRER_POLICY = "same-origin"
+    
+    # Production Origins
+    CORS_ALLOWED_ORIGINS = [
+        "https://67th.aloysius-altz.com",
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        "https://67th.aloysius-altz.com",
+    ]
+else:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False  
+    
+    # Local Vite Origins
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173", 
+        "http://127.0.0.1:5173"
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:5173", 
+        "http://127.0.0.1:5173"
+    ]
+
+
 
 
 # Password validation
@@ -172,13 +197,16 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-WHITENOISE_ROOT = os.path.join(BASE_DIR, 'static')
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'cache-control',
+    'pragma',
+    'expires',
+]

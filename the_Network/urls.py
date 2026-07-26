@@ -22,48 +22,61 @@ from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
 urlpatterns = [
-    path('robots.txt', TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
-    path('', views.login_view, name='index'),
-    path('admin/', admin.site.urls),
-    path('home/', views.home_view, name='home'),
-    path('profile/', views.profile_view, name='profile'),
-    path('messages/', views.messages_view, name='messages'),
-    path('search/', views.search_view, name='search'),
-    path('registration/', views.registration_view, name='registration'),
-    path('login/', views.login_view, name='login'),
-    path('baseEntrance/', views.baseEntrance_view, name='baseEntrance'),
-    path('update-profile/', views.update_profile, name='update_profile'),
-    path('logout/', views.logout_view, name='logout'),
-    path('post/<int:post_id>/hide/', views.toggle_hide_post, name='toggle_hide_post'),
-    path('post/<int:post_id>/delete/', views.delete_post, name='delete_post'),
-    path('post/<int:post_id>/report/', views.report_post, name='report_post'),
-    path('follow/<str:username>/', views.toggle_follow, name='toggle_follow'),
-    path('base/', views.base_view, name='base'),
-    path('post/<int:post_id>/like/', views.toggle_like, name='toggle_like'),
-    path('post/<int:post_id>/dislike/', views.toggle_dislike, name='toggle_dislike'),
-    path('profile/<str:username>/', views.profile_view, name='user_profile'),
-    path('post/<int:post_id>/', views.postDetail, name='postDetail'),
-    path('inbox/', views.inbox, name='inbox'),
-    path('messages/create-group/', views.create_group_thread, name='create_group_thread'),
-    path('messages/group/<int:thread_id>/', views.group_chat_thread, name='group_chat_thread'),
-    path('messages/<str:username>/', views.chat_thread, name='chat_thread'),
-    path('notification/delete/<int:notif_id>/', views.delete_notification, name='delete_notification'),
-    path('notification/clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
-    path('comment/<int:comment_id>/like/', views.toggle_comment_like, name='toggle_comment_like'),
-    path('comment/<int:comment_id>/dislike/', views.toggle_comment_dislike, name='toggle_comment_dislike'),
-    path('comment/<int:comment_id>/hide/', views.toggle_hide_comment, name='toggle_hide_comment'),
-    path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
-    path('comment/<int:comment_id>/report/', views.report_comment, name='report_comment'),
-    path('messages/settings/<int:thread_id>/', views.thread_settings, name='thread_settings'),
+    
+    # --- Authentication & Account ---
+    path('api/login/', views.api_login_view, name='api_login'),
+    path('api/register/', views.api_register_view, name='api_register'),
+    path('api/logout/', views.api_logout_view, name='api_logout'), 
     path('account/delete/', views.delete_account, name='delete_account'),
-    path('story/<int:story_id>/view/', views.mark_story_viewed, name='mark_story_viewed'),
-    path('story/<int:story_id>/delete/', views.delete_story, name='delete_story'),
-    path('story/<int:story_id>/reply/', views.reply_to_story, name='reply_to_story'),
-    path('story/create/', views.create_story, name='create_story'),
-    path('story/<int:story_id>/viewers/', views.get_story_viewers, name='get_story_viewers'),
-    path('story/<int:story_id>/like/', views.like_story, name='like_story')
-]
+    
+    # --- Profiles ---
+    path('api/profile/', views.api_profile_view, name='api_profile_me'),
+    path('api/profile/update/', views.api_update_profile, name='api_update_profile'),
+    path('api/profile/feed/', views.api_profile_feed, name='api_profile_feed_me'),
+    path('api/profile/<str:username>/', views.api_profile_view, name='api_profile_user'),
+    path('api/profile/<str:username>/feed/', views.api_profile_feed, name='api_profile_feed_user'),
+    path('api/profile/<str:username>/followers/', views.api_get_network, kwargs={'network_type': 'followers'}, name='api_followers'),
+    path('api/profile/<str:username>/following/', views.api_get_network, kwargs={'network_type': 'following'}, name='api_following'),
+    
+    # --- Main Feed & Posts ---
+    path('api/home/', views.api_home_view, name='api_home'),
+    path('api/posts/create/', views.api_create_post, name='api_create_post'),
+    path('api/posts/<int:post_id>/', views.api_post_detail, name='api_post_detail'),
+    path('api/posts/<int:post_id>/reply/', views.api_post_reply, name='api_post_reply'),
+    path('api/posts/<int:post_id>/<str:action>/', views.api_post_action, name='api_post_action'),
+    
+    # --- Comments ---
+    path('api/comment/<int:pk>/<str:action>/', views.api_comment_action, name='api_comment_action'), 
+    
+    # --- Stories (Prefix fixed to match React) ---
+    path('api/stories/', views.api_stories, name='api_stories'),
+    path('api/stories/add/', views.api_add_story, name='api_add_story'),
+    path('api/stories/limits/', views.api_story_limits, name='api_story_limits'),
+    path('api/stories/<int:story_id>/view/', views.mark_story_viewed, name='mark_story_viewed'),
+    path('api/stories/<int:story_id>/delete/', views.delete_story, name='delete_story'),
+    path('api/stories/<int:story_id>/reply/', views.reply_to_story, name='reply_to_story'),
+    path('api/stories/<int:story_id>/viewers/', views.get_story_viewers, name='get_story_viewers'),
+    path('api/stories/<int:story_id>/like/', views.like_story, name='like_story'),
+    
+    # --- Utilities ---
+    path('api/search/', views.api_search_view, name='api_search'),
+    path('api/suggested/', views.api_suggested, name='api_suggested'),
+    path('api/notifications/', views.api_notifications, name='api_notifications'),
+    path('api/notifications/<int:notif_id>/delete/', views.api_delete_notification, name='api_delete_notification'),
+    path('api/notifications/clear/', views.api_clear_all_notifications, name='api_clear_all_notifications'),
 
+    path('api/messages/start/<str:username>/', views.api_start_chat, name='api_start_chat'),
+    path('api/messages/thread/<int:thread_id>/', views.api_thread, name='api_thread'),
+    path('api/users/', views.api_users, name='api_users'),
+    path('api/inbox/', views.api_inbox, name='api_inbox'),
+    path('api/profile/<str:username>/follow/', views.api_follow_user, name='api_follow_user'),
+    path('api/messages/group/create/', views.api_create_group, name='api_create_group'),
+    path('api/messages/thread/<int:thread_id>/settings/', views.api_thread_settings, name='api_thread_settings'),
+    path('api/notifications/<int:notif_id>/read/', views.api_mark_notification_read, name='api_mark_notification_read'),
+
+    # --- Reports ---
+    path('api/report/', views.api_submit_report, name='api_submit_report'),
+]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

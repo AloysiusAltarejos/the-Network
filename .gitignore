@@ -1,14 +1,24 @@
-db.sqlite3
+# Environment & Secrets
+.env
+.env.*
+*.env
 
+# Database & Backups
+db.sqlite3
+*.sql
+my_backup*
+
+# Media & Uploads
 media/
 media/*
 
-
+# Python / Django
 __pycache__/
 *.pyc
 .venv/
 venv/
 env/
 
-
-.env
+# Editor & System Files
+.vscode/
+.DS_Store

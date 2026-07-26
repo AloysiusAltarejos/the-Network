@@ -1,1 +1,1 @@
-web: gunicorn the_Network.wsgi --log-file - --max-requests 1000 --max-requests-jitter 50
+web: python manage.py migrate && gunicorn the_Network.wsgi --log-file - --max-requests 1000 --max-requests-jitter 50

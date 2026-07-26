@@ -1,0 +1,1007 @@
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Share+Tech+Mono&family=Solway:wght@300;400;500;700&display=swap');
+:root {
+    --background: #030321;
+    --foreground: #e2e8f0; 
+    --muted: #131c2f; 
+    --muted-foreground: #64748b; 
+    --border: #1e293b;  
+    --primary: #1d4ed8;    
+    --primary-foreground: #ffffff;
+    --radius: 0px; 
+}
+
+* {
+    border-radius: var(--radius) !important;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--foreground);
+    margin: 0; 
+    padding: 0;
+    overflow-x: hidden; 
+    font-family: 'Solway', serif;
+}
+
+body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+/* =========================================
+   2. MAIN LAYOUT & NAVIGATION
+========================================= */
+.app-layout {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+main {
+    flex-grow: 1;
+    min-width: 0;
+    padding: 20px 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.top-navbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #001f3f; 
+    padding: 10px 15px; 
+    position: sticky;
+    top: 0;
+    z-index: 950;
+    height: 65px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+#sidebarToggle {
+    justify-self: start;
+}
+
+#activityToggle {
+    justify-self: end;
+}
+
+.neon-title {
+    color: #00FFFF; 
+    margin: 0;
+    font-size: 32px;
+    letter-spacing: 2px;
+}
+
+.neon-title:hover{
+    transition: ease-in-out 0.5s;
+    text-shadow: 0 0 12px rgba(0, 155, 255, 0.9); 
+    transform: scale(1.3);
+}
+
+.nav-toggle-btn {
+    background: transparent;
+    border: none;
+    font-size: 40px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    color: #FFFFFF;
+    margin-top: -10px
+}
+
+.nav-toggle-btn:hover {
+    transform: scale(2.0); 
+    text-shadow: 0 0 12px rgba(0, 155, 255, 0.9);
+    color: rgba(0, 255, 255, 0.8);
+    border: none !important;
+    outline: none !important;
+}
+/* =========================================
+   3. SIDEBARS (LEFT NAV & RIGHT ACTIVITY)
+========================================= */
+.sidebar, .right-sidebar {
+    width: 260px;
+    flex: 0 0 260px;
+    background-color: var(--background);
+    color: var(--foreground);
+    padding: 30px 24px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 65px;
+    height: calc(100vh - 65px);
+    box-sizing: border-box;
+    overflow: hidden;
+    transition: opacity 0.3s ease, margin 0.3s ease;
+}
+
+.sidebar {
+    border-right: 1px solid var(--border);
+}
+.sidebar.collapsed {
+    margin-left: -260px;
+    opacity: 0;
+    border: none !important;
+}
+
+.right-sidebar {
+    border-left: 1px solid var(--border);
+}
+.right-sidebar.collapsed {
+    margin-right: -260px;
+    opacity: 0;
+    border: none !important;
+}
+
+.logo-title {
+    font-family: 'Share Tech Mono', sans-serif;
+    font-size: 28px;
+    color: #0096C7;
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-grow: 1; 
+}
+
+.sidebar-footer {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    border-top: 1px solid var(--border);
+    padding-top: 15px;
+}
+
+/* Sidebar Menu Items */
+.nav-item {
+    text-decoration: none;
+    color: var(--foreground);
+    padding: 12px;
+    font-family: 'Pixelify Sans', sans-serif;
+    font-weight: bold;
+    font-size: 25px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.nav-item.active, 
+.nav-item:hover {
+    border: 1px solid var(--primary);
+    background-color: rgba(0, 150, 255, 0.2); 
+    box-shadow: 0px 0px 6px 2px rgba(29, 78, 216, 0.6), 0px 0px 15px 5px rgba(29, 78, 216, 0.2); 
+    color: var(--primary) !important;
+}
+/* =========================================
+   4. NOTIFICATIONS, POSTS & REPLIES
+========================================= */
+.notif-box, .post-card {
+    position: relative;
+    overflow: hidden; 
+    padding: 16px;
+    border: 1px solid var(--border);
+    background-color: var(--background);
+    color: var(--foreground);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.notif-box:hover, .post-card:hover {
+    border-color: #a1a1aa; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
+}
+
+/* The Shine Sweep Animation */
+.notif-box::after, .post-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -150%; 
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-25deg); 
+    z-index: 1;
+    pointer-events: none; 
+    transition: left 0s; 
+}
+
+.notif-box:hover::after, .post-card:hover::after {
+    left: 200%; 
+    transition: left 0.7s cubic-bezier(0.4, 0, 0.2, 1); 
+}
+
+.notif-box.unread {
+    background-color: var(--muted);
+}
+
+/* Targeted Reply Highlight (postDetail.html) */
+@keyframes target-glow {
+    0% { background-color: rgba(29, 78, 216, 0.4); }
+    100% { background-color: transparent; }
+}
+
+.reply-wrapper:target {
+    animation: target-glow 2.5s ease-out;
+}
+
+/* =========================================
+   5. BUTTONS & DROPDOWNS
+========================================= */
+button {
+    font-weight: 500;
+}
+
+.logout-hover {
+    background: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    font-family: 'Pixelify Sans', sans-serif;
+    font-weight: bold;
+    font-size: 25px;
+    color: var(--foreground);
+    transition: all 0.2s ease-in-out;
+}
+
+.logout-hover:hover {
+    color: #000000 !important;
+    background-color: #8B0000;
+    border-color: #8B0000;
+    box-shadow: 0px 0px 9px 5px rgba(255, 50, 50, 0.4), 0px 0px 9px 7px rgba(255, 50, 50, 0.2); 
+}
+
+/* Options Box (Report/Hide/Delete) */
+.options-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    min-width: 140px;
+    z-index: 50;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.options-dropdown button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 15px;
+    background: none;
+    border: none;
+    color: var(--foreground);
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.options-dropdown button:hover {
+    background-color: var(--muted);
+}
+.options-dropdown .delete-btn:hover { color: #ef4444; }
+.options-dropdown .report-btn:hover { color: #eab308; }
+
+/* =========================================
+   6. LOGIN & REGISTRATION FORMS
+========================================= */
+.auth-header {
+    display: flex;
+    justify-content: center;
+    gap: 15px; 
+    margin-bottom: 20px; 
+}
+
+.nav-item-entrance {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--primary);
+    color: var(--primary-foreground); 
+    text-decoration: none; 
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    border: 1px solid var(--primary);
+    border-radius: 4px; 
+    transition: all 0.2s ease; 
+    cursor: pointer;
+    text-align: center;
+}
+
+.nav-item-entrance:hover {
+    background-color: transparent; 
+    color: var(--primary); 
+}
+
+.nav-item-entrance.active {
+    background-color: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+}
+
+.help-text {
+    color: var(--muted-foreground);
+    font-size: 0.8rem;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.help-text-list {
+    color: var(--muted-foreground);
+    font-size: 0.8rem;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    padding-left: 20px;
+}
+
+.auth-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: var(--muted);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    color: var(--foreground);
+    margin-bottom: 20px;
+}
+
+.auth-container textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border: 1px solid var(--border);
+    background-color: var(--background);
+    color: var(--foreground);
+    box-sizing: border-box;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.auth-container textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.auth-container p {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    color: var(--muted-foreground);
+    font-weight: bold;
+}
+
+.auth-container input {
+    width: 100%; 
+    box-sizing: border-box;
+    padding: 12px;
+    margin-top: 5px;
+    border: 1px solid var(--border);
+    background-color: var(--background);
+    color: var(--foreground);
+}
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.auth-container input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+#submitBtn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+#submitBtn:hover {
+    opacity: 0.9;
+}
+
+#submitBtn:disabled {
+    background-color: var(--muted-foreground);
+    cursor: not-allowed;
+}
+.image-text-input{
+    display: flex; 
+    align-items: center; 
+    gap: 15px; color: 
+    var(--muted-foreground); 
+    font-size: 1.5rem;
+}
+
+.image-text-input:hover{
+    transition: ease-in-out 0.5s;
+    transform: scale(1.2);
+    text-shadow: 0 0 12px rgba(0, 155, 255, 0.9);
+    color: rgba(0, 255, 255, 0.8);
+}
+
+.delete-account-final-button{
+    background-color: #ef4444; 
+    color: white; 
+    border: 1px solid #ef4444; 
+    padding: 10px 20px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    text-transform: uppercase; 
+    font-size: 0.85rem;
+}
+
+.delete-account-final-button:hover{
+    transition: ease 0.4s;
+    color: #ffffff !important;
+    background-color: #8B0000;
+    border-color: #8B0000;
+    box-shadow: 0px 0px 9px 5px rgba(255, 50, 50, 0.4), 0px 0px 9px 7px rgba(255, 50, 50, 0.2); 
+}
+
+.cancel-delete-account-button{
+    background-color: transparent; 
+    color: var(--muted-foreground); 
+    border: 1px solid var(--muted-foreground); 
+    padding: 10px 20px; font-weight: bold; 
+    cursor: pointer; text-transform: uppercase; 
+    font-size: 0.85rem;
+}
+
+.cancel-delete-account-button:hover{
+    transition: ease 0.2s;
+    color: #000000 !important;
+    background-color: #0FFF50;
+    border-color: #0FFF50;
+    box-shadow: 0px 0px 7px 4px rgba(0, 255, 127, 0.5), 0px 0px 6px 4px rgba(0, 255, 127, 0.7); 
+}
+
+.close-story{
+    position: absolute; 
+    top: 20px; 
+    right: 20px;
+    background: none; 
+    border: none; 
+    color: white; 
+    font-size: 2rem; 
+    cursor: pointer; 
+    z-index: 10;
+}
+
+.close-story:hover{
+    transition: ease 0.2s;
+    transform: scale(1.5);
+    color: #ff0000 !important;
+}
+
+.story-limit-warning{
+    padding: 15px; 
+    text-align: center; 
+    background-color: rgba(239, 68, 68, 0.1); 
+    color: #ef4444; 
+    border: 1px solid #ef4444; 
+    font-weight: bold; 
+    font-size: 0.85rem;
+}
+
+#story-like-btn{
+    background: none; 
+    border: none; 
+    font-size: 1.5rem; 
+    cursor: pointer; 
+}
+
+#story-like-btn:hover{
+    transition: transform 0.2s;
+    transform: scale(1.3), rotate(360deg);
+    color: rgba(210, 4, 45, 0.9) !important;
+}
+
+.ajax-follow-btn {
+        padding: 6px 16px; 
+        font-weight: bold; 
+        letter-spacing: 1px; 
+        cursor: pointer; 
+        text-transform: uppercase; 
+        font-size: 0.75rem; 
+        transition: all 0.2s ease; 
+        border-radius: 4px;
+}
+
+.ajax-follow-btn.following {
+    background-color: transparent;
+    color: var(--muted-foreground);
+    border: 1px solid var(--muted-foreground);
+}
+
+.ajax-follow-btn.following:hover {
+    color: #ef4444;
+    border-color: #ef4444;
+}
+
+.ajax-follow-btn.not-following {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    border: 1px solid var(--primary);
+}
+
+.ajax-follow-btn.not-following:hover {
+    opacity: 0.9;
+}
+
+.author-link strong {
+    transition: text-decoration 0.2s ease;
+}
+.author-link:hover strong {
+    text-decoration: underline;
+}
+
+/* Post Interaction Buttons */
+.interact-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.3s ease, transform 0.2s ease;
+    color: var(--muted-foreground); /* Default color */
+}
+
+/* Like Button States */
+.interact-btn.like-btn:hover, 
+.interact-btn.like-btn.active {
+    color: var(--primary);
+}
+
+/* Dislike Button States */
+.interact-btn.dislike-btn:hover, 
+.interact-btn.dislike-btn.active {
+    color: #ef4444;
+}
+
+/* The 200ms Click Pop Animation from your JS script */
+.interact-btn.pop-animate {
+    transform: scale(1.4);
+}
+
+/* Adjustments for the dropdown menu positioning in a feed */
+.relative-container {
+    position: relative;
+}
+
+.sidebar.collapsed {
+    margin-left: -260px;
+    opacity: 0;
+    border: none !important;
+}
+
+.interactive-action-btn {
+    transition: all 0.2s ease-in-out !important;
+}
+.interactive-action-btn:hover {
+    transform: scale(1.05);
+    background-color: rgba(29, 78, 216, 0.1) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+.feed-toggle-btn {
+    transition: background-color 0.2s ease, transform 0.2s ease !important;
+}
+.feed-toggle-btn:hover {
+    background-color: var(--background) !important;
+    color: var(--foreground) !important;
+}
+
+/* Hover and scale for the Replies link */
+.reply-hover-link {
+    transition: color 0.2s ease, transform 0.2s ease !important;
+    display: inline-block; 
+}
+.reply-hover-link:hover {
+    color: var(--primary) !important;
+    transform: scale(1.1);
+}
+
+.back-feed-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.back-feed-link:hover {
+    transform: translateX(-5px); /* Slides the link slightly to the left */
+    color: var(--foreground) !important;
+}
+
+/* Reply & Send Button Hover Animation */
+.submit-reply-btn {
+    transition: all 0.2s ease;
+    border-radius: 4px; /* Optional: smooths the edges */
+}
+
+.submit-reply-btn:hover {
+    background-color: var(--primary) !important;
+    color: var(--background) !important;
+    border-color: var(--primary) !important;
+    transform: translateY(-2px); /* Lifts the button */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Base Comment Interaction Hover */
+.comment-interact-btn {
+    transition: all 0.2s ease;
+}
+
+.comment-interact-btn:hover {
+    transform: scale(1.1); /* Slight bump in size on hover */
+    color: var(--foreground) !important;
+}
+
+/* =========  7. RESPONSIVE DESIGN (for mobile and other screens)  ================*/
+@media (max-width: 768px){
+
+    .auth-container {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 20px; /* Slightly reduced for smaller screens */
+        margin: 20px auto;
+    }
+
+    .neon-title {
+        font-size: 22px; 
+        letter-spacing: 1px;
+        white-space: nowrap; 
+    }
+
+    .nav-toggle-btn {
+        font-size: 28px;
+        margin-top: 0;
+    }
+
+    #sidebarToggle {
+        font-size: 38px; 
+    }
+
+    html {
+        font-size: 14px;
+    }
+
+    .app-layout {
+        flex-direction: column;
+    }
+
+    .sidebar, .right-sidebar {
+        position: fixed !important;
+        width: 75% !important;
+        max-width: 320px !important;
+        z-index: 999 !important;
+        transition: transform 0.3s ease-in-out !important;
+        opacity: 1 !important;
+        background-color: var(--background) !important;
+        border: none !important;
+        box-shadow: 0 0 25px rgba(0,0,0,0.8) !important;
+        margin: 0 !important;
+        flex: none;
+        height: 100vh;
+        top: 0;
+    }
+
+    .sidebar {
+        left: 0 !important;
+        transform: translateX(-105%) !important;
+    }
+
+    .right-sidebar {
+        right: 0 !important;
+        transform: translateX(105%) !important;
+    }
+
+    .sidebar.mobile-open, .right-sidebar.mobile-open {
+        transform: translateX(0) !important;
+    }
+
+    .sidebar.collapsed {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    main {
+        width: 100% !important;
+        padding: 10px !important;
+    }
+
+    .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 900;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .sidebar-backdrop.active {
+        display: block;
+        opacity: 1;
+    }
+}
+
+@keyframes pop {
+  0% { 
+    transform: scale(1); 
+  }
+  50% { 
+    transform: scale(1.4); 
+  }
+  100% { 
+    transform: scale(1); 
+  }
+}
+
+/* The class React adds on click */
+.pop-animate {
+  animation: pop 0.2s ease-in-out;
+}
+
+/* Optional: Make sure the interact-btn has a smooth transition for colors */
+.interact-btn {
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.interact-btn {
+  transition: all 0.2s ease;
+}
+
+/* Hover effects for Like and Dislike */
+.interact-btn.like-btn:hover {
+  color: var(--primary) !important;
+  transform: scale(1.1);
+}
+
+.interact-btn.dislike-btn:hover {
+  color: #ef4444 !important;
+  transform: scale(1.1);
+}
+
+/* The click-pop animation keyframes */
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+/* The class React temporarily adds on click */
+.pop-animate {
+  animation: pop 0.2s ease-in-out;
+}
+
+@keyframes grey-out-highlight {
+    0% { background-color: #4b5563; } /* Visible Grey */
+    10% { background-color: #4b5563; } /* Hold it briefly */
+    100% { background-color: transparent; } /* Fade back to normal */
+}
+
+/* When the URL hash matches the element's ID, apply the animation */
+.comment-wrapper:target {
+    animation: grey-out-highlight 3s ease-out;
+}
+
+.unread-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #3b82f6; /* Bright blue */
+    border-radius: 50% !important;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+/* Base style for a read notification */
+.notif-box.read {
+    opacity: 0.6;
+    filter: grayscale(80%);
+    transition: all 0.5s ease;
+}
+
+/* The animation when clicking an unread notification to turn it read */
+.grey-out-animation {
+    animation: greyOut 0.5s forwards ease-out;
+}
+
+@keyframes greyOut {
+    0% {
+        opacity: 1;
+        filter: grayscale(0%);
+    }
+    100% {
+        opacity: 0.6;
+        filter: grayscale(80%);
+    }
+}
+
+.notif-box {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.5s ease, filter 0.5s ease;
+}
+
+/* Lift the notification up by 3 pixels and add a soft shadow on hover */
+.notif-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-toggle-btn {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent; 
+}
+
+.nav-toggle-btn:focus, 
+.nav-toggle-btn:active, 
+.nav-toggle-btn:focus-visible {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important; 
+}
+
+@keyframes grey-out-highlight {
+    0% { background-color: rgba(128, 128, 128, 0.3); } /* Transparent grey */
+    10% { background-color: rgba(128, 128, 128, 0.3); } /* Hold it briefly */
+    100% { background-color: transparent; }
+}
+
+/* The class we will temporarily attach to the targeted reply */
+.highlighted-reply {
+    animation: grey-out-highlight 3s ease-out forwards;
+    border-radius: 8px; /* Optional: smooths the edges of the grey box */
+}
+
+/* The hover effect for the "replying to..." button */
+.reply-reference-btn {
+    color: var(--muted-foreground); /* Starts Grey */
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.reply-reference-btn:hover {
+    color: var(--foreground); /* Turns White on hover */
+}
+
+/* Icon Buttons (+, ⚙, ✕) */
+.chat-icon-btn {
+    transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.2s ease !important;
+}
+.chat-icon-btn:hover {
+    transform: scale(1.3) rotate(15deg);
+    color: var(--foreground) !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+.chat-icon-btn:active {
+    transform: scale(0.9) rotate(-10deg);
+}
+
+/* General Action Buttons (Send, RENAME, UPLOAD PIC, SET, ADD) */
+.chat-action-btn {
+    transition: all 0.2s ease !important;
+}
+.chat-action-btn:hover {
+    background-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(29, 78, 216, 0.4);
+}
+.chat-action-btn:active {
+    transform: translateY(1px) scale(0.96);
+    box-shadow: 0 2px 6px rgba(29, 78, 216, 0.4);
+}
+
+/* Back to Inbox Link */
+.chat-back-link {
+    transition: all 0.2s ease !important;
+    display: inline-block;
+}
+.chat-back-link:hover {
+    transform: translateX(-5px) scale(1.05);
+    color: var(--primary-foreground) !important;
+    text-shadow: 0 0 8px rgba(29, 78, 216, 0.6);
+}
+.chat-back-link:active {
+    transform: translateX(-2px) scale(0.95);
+}
+
+/* Destructive Buttons (KICK, LEAVE, DELETE) */
+.chat-danger-btn {
+    transition: all 0.2s ease !important;
+}
+.chat-danger-btn:hover {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+    border-color: #ef4444 !important;
+    transform: scale(1.02);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+.chat-danger-btn:active {
+    transform: scale(0.96);
+}
+
+/* Mute Button */
+.chat-mute-btn {
+    transition: all 0.2s ease !important;
+}
+.chat-mute-btn:hover {
+    background-color: rgba(234, 179, 8, 0.1) !important;
+    border-color: #eab308 !important;
+    color: #eab308 !important;
+    transform: scale(1.02);
+    box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
+}
+.chat-mute-btn:active {
+    transform: scale(0.96);
+}
+
+.suggested-card-anim {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.suggested-card-anim:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.15); /* Adjust color to match your theme */
+    border-color: var(--primary) !important;
+}
+
+/* Follow Button Animation */
+.follow-btn-anim {
+    transition: all 0.2s ease-in-out;
+}
+
+.follow-btn-anim:hover {
+    background-color: var(--primary) !important;
+    color: var(--background) !important;
+}
+.report-post-textarea{ 
+    width: '100%';
+    height: '120px';
+    background-Color: '#111';
+    color: '#fff';
+    border: '1px solid #333';
+    padding: '15px';
+    margin-Bottom: '20px';
+    resize: 'none';
+    outline: 'none';
+    box-Sizing: 'border-box';
+    border-Radius: '4px';
+    font-Family: 'inherit';
+}
