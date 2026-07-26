@@ -539,7 +539,7 @@ def api_notifications(request):
             'post_id': n.post.id if n.post else None,
             'story_id': n.story.id if n.story else None,  
             'comment_id': n.comment.id if n.comment else None, 
-            'is_read': getattr(n, 'is_read', False) 
+            'is_read': getattr(n, 'is_read', False), 
             'unread_message_count': request.user.profile.unread_message_count
         })
         
