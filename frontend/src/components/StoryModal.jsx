@@ -52,7 +52,6 @@ export default function StoryModal({ stories, initialUserIndex, targetStoryId, o
 
     const STORY_DURATION = 15000;
 
-    // FIX 1: Skips to the exact story immediately on load
     useEffect(() => {
         if (targetStoryId && stories && stories.length > 0) {
             for (let uIdx = 0; uIdx < stories.length; uIdx++) {

@@ -8,7 +8,6 @@ export default function StoryTray() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedStoryIndex, setSelectedStoryIndex] = useState(null);
     
-    // FIX 1: Read the query parameter from Layout.jsx
     const location = useLocation();
     const navigate = useNavigate();
     const queryParams = new URLSearchParams(location.search);
@@ -17,14 +16,15 @@ export default function StoryTray() {
     const [myPic, setMyPic] = useState(null); 
     const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
-    useEffect(() => {
-        fetch(`${baseURL}/api/stories/`, {
-            credentials: 'include'
-        })
+    const fetchStories = () => {
+        fetch(`${baseURL}/api/stories/`, { credentials: 'include' })
             .then(response => response.json())
             .then(data => setStories(data.stories))
             .catch(error => console.error("Error fetching stories:", error));
-            
+    };
+    
+    useEffect(() => {
+        fetchStories();
         fetch(`${baseURL}/api/profile/`, {
             credentials: 'include'
         })
@@ -64,7 +64,6 @@ export default function StoryTray() {
 
                 {/* FRIEND STORY BUBBLES */}
                 {stories.map((user, index) => {
-                    // FIX 3: Check for both is_viewed and viewed to ensure the gray border works
                     const allViewed = user.items.every(item => item.viewed || item.is_viewed);
                     const activeStory = user.items.find(item => !(item.viewed || item.is_viewed)) || user.items[0];
 
@@ -90,7 +89,6 @@ export default function StoryTray() {
                                 cursor: 'pointer', 
                                 flexShrink: 0, 
                                 backgroundColor: 'var(--muted)', 
-                                // FIX 2: Added baseURL to the picture fetch
                                 backgroundImage: user.pic_url ? `url('${baseURL}${user.pic_url}')` : 'none', 
                                 backgroundSize: 'cover', 
                                 backgroundPosition: 'center' 
@@ -100,7 +98,6 @@ export default function StoryTray() {
                 })}
             </div>
 
-            {/* Passes the routeStoryId down so the modal knows exactly which item to skip to */}
             {(selectedStoryIndex !== null || routeStoryId) && stories.length > 0 && (
                 <StoryModal 
                     stories={stories} 
@@ -111,7 +108,7 @@ export default function StoryTray() {
             )}
 
             {showAddModal && (
-                <AddStoryModal onClose={() => setShowAddModal(false)} />
+                <AddStoryModal onClose={() => setShowAddModal(false)} refreshStories={fetchStories} />
             )}
         </>
     );

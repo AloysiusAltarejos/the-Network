@@ -33,24 +33,22 @@ export default function ChatThread({ currentUserId }) {
     const [allUsers, setAllUsers] = useState([]);
     const [chatSearchQuery, setChatSearchQuery] = useState('');
 
-    // 1. Fetch initial thread data & user directory
     useEffect(() => {
         fetch(`${baseURL}/api/messages/thread/${threadId}/`, { credentials: 'include' })
             .then(res => res.json())
             .then(data => {
                 setThread(data.thread);
                 setMessages(data.messages);
-                scrollToBottom(true); // Force scroll on initial load
+                scrollToBottom(true); 
             })
             .catch(err => console.error("Error fetching thread:", err));
-         fetch(`${baseURL}/api/users/`, { credentials: 'include' }) // Ensure this endpoint exists in Django!
+         fetch(`${baseURL}/api/users/`, { credentials: 'include' })
             .then(res => res.json())
             .then(data => setAllUsers(data))
             .catch(err => console.error("Error fetching users:", err));
             
     }, [threadId, baseURL]);
 
-    // 2. Real-Time Polling (Runs every 3 seconds)
     useEffect(() => {
         const pollMessages = () => {
             fetch(`${baseURL}/api/messages/thread/${threadId}/`, { credentials: 'include' })
@@ -62,24 +60,20 @@ export default function ChatThread({ currentUserId }) {
                         const prevLastMsg = prevMessages[prevMessages.length - 1];
                         const fetchedLastMsg = data.messages[data.messages.length - 1];
 
-                        // Only update state if the last message ID changed OR the total count changed
-                        // This prevents React from re-rendering the DOM every 3 seconds
                         if (!fetchedLastMsg || prevLastMsg.id !== fetchedLastMsg.id || prevMessages.length !== data.messages.length) {
                             return data.messages;
                         }
-                        return prevMessages; // No changes, return exact previous state
+                        return prevMessages;
                     });
                 })
                 .catch(err => console.error("Polling error:", err));
         };
 
-        const intervalId = setInterval(pollMessages, 3000); // 3000ms = 3 seconds
+        const intervalId = setInterval(pollMessages, 3000);
 
-        // Cleanup function: clears the interval when the component unmounts or threadId changes
         return () => clearInterval(intervalId);
     }, [threadId, baseURL]);
 
-    // 3. Smart Auto-Scroll Logic
     const scrollToBottom = useCallback((force = false) => {
         if (!chatLogRef.current) return;
         
@@ -91,12 +85,10 @@ export default function ChatThread({ currentUserId }) {
         }
     }, []);
 
-    // Trigger smart scroll whenever messages change
     useEffect(() => {
         scrollToBottom();
     }, [messages, scrollToBottom]);
 
-    // 2. Handle sending a message
     const handleSendMessage = (e) => {
         e.preventDefault();
         if (!newMessage.trim()) return;

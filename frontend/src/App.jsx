@@ -18,27 +18,24 @@ function App() {
     <Routes>
       <Route path="/auth" element={<AuthPage setIsAuthenticated={setIsAuthenticated} />} />
       
-      {/* PARENT ROUTE: The Layout acts as the base frame */}
+      {/* This is the parent route. The Layout acts as the base frame */}
       <Route element={isAuthenticated ? <Layout /> : <Navigate to="/auth" replace />}>
         
-        {/* CHILD ROUTES: These get injected into Layout's <Outlet /> */}
+        {/* child routes. These get injected into Layout's <Outlet /> */}
         <Route path="/home" element={<Home />} />
         <Route path="/post/:id" element={<PostDetail />} />
         
-        {/* 3. Uncomment and add your active routes here */}
+        {/* add active routes here */}
         <Route path="profile" element={<Profile />} />
         <Route path="profile/:username" element={<Profile />} />
         <Route path="/search" element={<Search />} />
-        {/* <Route path="/inbox" element={<Messages />} /> */}
 
-        {/* Add these two new routes to stop the redirect! */}
+        {/* handles messages and conversations */}
         <Route path="inbox" element={<Inbox />} />
-        {/* Note the :threadId parameter, you need to pull this inside ChatThread using the useParams() hook */}
         <Route path="messages/:threadId" element={<ChatThread />} />
         
       </Route>
 
-      {/* CATCH-ALL */}
       <Route path="*" element={<Navigate to={isAuthenticated ? "/home" : "/auth"} replace />} />
     </Routes>
   );

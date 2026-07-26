@@ -11,7 +11,6 @@ export default function SuggestedConnections() {
         })
             .then(res => res.json())
             .then(data => {
-                console.log("API Response:", data); // Check your browser console!
                 setSuggestions(data.suggested || []); 
             })
             .catch(err => console.error("Fetch Error:", err));
@@ -57,7 +56,6 @@ export default function SuggestedConnections() {
                             </span>
                         </Link>
                         
-                        {/* Wired up the new animation class here */}
                         <button className="follow-btn-anim" style={{ width: '100%', background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '6px 0', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', marginTop: 'auto' }}>
                             Follow
                         </button>

@@ -131,11 +131,8 @@ export default function CreatePost({ setPosts, currentFeed }) {
                         }}
                     />
                 </div>
-                
-                {/* Subtle divider matching the UI */}
                 <hr style={{ width: '100%', border: 'none', borderBottom: '1px solid var(--muted)', margin: '0 0 15px 0' }} />
 
-                {/* Bottom Row: Controls */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     {/* Image Upload */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

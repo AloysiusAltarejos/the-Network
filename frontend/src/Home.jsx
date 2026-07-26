@@ -18,7 +18,6 @@ export default function Home() {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
 
-    // 1. Reset feed when toggling between 'global' and 'following'
     useEffect(() => {
         localStorage.setItem('feedPreference', currentFeed);
         setPosts([]);
@@ -26,7 +25,6 @@ export default function Home() {
         setHasMore(true);
     }, [currentFeed]);
     
-    // 2. Fetch data whenever 'currentFeed' or 'page' changes
     useEffect(() => {
         if (!hasMore && page !== 1) return;
 
@@ -39,10 +37,8 @@ export default function Home() {
             .then(data => {
                 console.log("Raw data from Django:", data);
                 setPosts(prevPosts => {
-                    // If we are loading the first page of a new feed, completely replace the old posts
                     if (page === 1) return data.posts;
                     
-                    // Otherwise, append the new page, but filter out duplicates just in case
                     const existingIds = new Set(prevPosts.map(p => p.id));
                     const newPosts = data.posts.filter(p => !existingIds.has(p.id));
                     return [...prevPosts, ...newPosts];
@@ -57,7 +53,6 @@ export default function Home() {
             });
     }, [currentFeed, page]);
 
-    // 3. The Intersection Observer Logic
     const observer = useRef();
     
     const lastPostElementRef = useCallback(node => {
@@ -86,11 +81,8 @@ export default function Home() {
             {/* 3. The Input to Create a New Regular Post */}
             <CreatePost setPosts={setPosts} currentFeed={currentFeed} />
 
-            {/* ---> NEW: Suggested Connections Box <--- */}
+            {/* ---> Suggested Connections Box <--- */}
             <SuggestedConnection />
-
-            {/* Feed Rendering */}
-            <div className="feed-container"></div>
 
             {/* Feed Rendering */}
             <div className="feed-container">

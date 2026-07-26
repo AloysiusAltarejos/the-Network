@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-// IMPORT YOUR STORY MODAL HERE
 import StoryModal from './components/StoryModal';
 
 // CSRF Token Helper
@@ -20,7 +18,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// --- Reusable Animated Button ---
+//Reusable Animated Button
 const AnimatedButton = ({ children, onClick, baseStyle, hoverStyle, isLabel, disabled, className }) => {
     const [isHovered, setIsHovered] = useState(false);
     const Component = isLabel ? 'label' : 'button';
@@ -46,7 +44,7 @@ const AnimatedButton = ({ children, onClick, baseStyle, hoverStyle, isLabel, dis
     );
 };
 
-// --- Reusable Network Stat Button ---
+// Reusable Network Stat Button
 const NetworkStat = ({ count, label, onClick }) => {
     const [isHovered, setIsHovered] = useState(false);
     return (

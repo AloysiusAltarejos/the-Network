@@ -42,7 +42,6 @@ export default function AuthPage({ setIsAuthenticated }) {
                 setIsAuthenticated(true);
                 navigate('/Home');
             } else {
-                // Safely check if the response is actually JSON before parsing
                 const contentType = response.headers.get("content-type");
                 if (contentType && contentType.indexOf("application/json") !== -1) {
                     const errorData = await response.json();
@@ -126,7 +125,7 @@ export default function AuthPage({ setIsAuthenticated }) {
                         )}
                     </div>
 
-                    {/* Registration-only fields */}
+                    {/* Registration */}
                     {!isLogin && (
                         <>
                             <div className="input-group">

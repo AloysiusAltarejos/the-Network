@@ -100,14 +100,14 @@ export default function Inbox() {
                                     gap: '15px', 
                                     padding: '15px', 
                                     textDecoration: 'none', 
-                                    backgroundColor: 'var(--background)', // Changed default to background
+                                    backgroundColor: 'var(--background)', 
                                     border: '1px solid var(--border)', 
                                     borderRadius: '8px', 
                                     transition: 'background-color 0.2s ease', 
                                     position: 'relative' 
                                 }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--muted)'} // Changed hover to muted
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--background)'} // Reverts to background
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--muted)'} 
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--background)'} 
                             >
                                 {/* Avatar */}
                                 <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'var(--background)', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'var(--foreground)', fontSize: '1.2rem', border: '1px solid var(--border)' }}>

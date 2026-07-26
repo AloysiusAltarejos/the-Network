@@ -6,8 +6,6 @@ export default function GroupModal({ isOpen, onClose, allUsers = [] }) {
     const [selectedUsers, setSelectedUsers] = useState(new Set());
     const [isSubmitting, setIsSubmitting] = useState(false);
     const baseURL = import.meta.env.VITE_API_BASE_URL || '';
-
-    // Replaces filterModalUsers(): Automatically filters when search or allUsers changes
     const filteredUsers = useMemo(() => {
         const lowerQuery = searchQuery.toLowerCase();
         return allUsers
@@ -30,7 +28,6 @@ export default function GroupModal({ isOpen, onClose, allUsers = [] }) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // 'X-CSRFToken': getCookie('csrftoken') // Ensure you import your getCookie function
             },
             body: JSON.stringify({
                 group_name: groupName,
@@ -43,7 +40,7 @@ export default function GroupModal({ isOpen, onClose, allUsers = [] }) {
             setIsSubmitting(false);
             if (data.success) {
                 onClose();
-                window.location.href = `/messages/${data.thread_id}`; // Redirect to new group
+                window.location.href = `/messages/${data.thread_id}`;
             }
         });
     };

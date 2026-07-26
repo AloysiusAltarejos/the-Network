@@ -25,7 +25,7 @@ export default function AddStoryModal({ onClose }) {
     const [availableUsers, setAvailableUsers] = useState([]);
     const [selectedUserIds, setSelectedUserIds] = useState(new Set());
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
-    const [searchQuery, setSearchQuery] = useState(''); // New state for search bar
+    const [searchQuery, setSearchQuery] = useState('');
     
     const [limits, setLimits] = useState({ photos_left: 5, text_left: 5 }); 
     const [isLoadingLimits, setIsLoadingLimits] = useState(true);
@@ -33,7 +33,6 @@ export default function AddStoryModal({ onClose }) {
     const baseURL = import.meta.env.VITE_API_BASE_URL || '';
     const fileInputRef = useRef(null);
 
-    // Fetch limits cleanly using headers to bypass cache
     useEffect(() => {
         fetch(`${baseURL}/api/stories/limits/`, {
             credentials: 'include',
@@ -87,7 +86,6 @@ export default function AddStoryModal({ onClose }) {
         });
     };
 
-    // Filter and Sort Users: Selected users always stay at the top, then filter by search query
     const filteredAndSortedUsers = useMemo(() => {
         let filtered = availableUsers.filter(user => 
             (user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -241,9 +239,9 @@ export default function AddStoryModal({ onClose }) {
                                                     padding: '10px', 
                                                     cursor: 'pointer', 
                                                     borderBottom: '1px solid var(--border)',
-                                                    backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'transparent', // Light blue tint if selected
+                                                    backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
                                                     transform: isSelected ? 'scale(0.99)' : 'scale(1)',
-                                                    transition: 'all 0.2s ease-in-out', // Smooth animations
+                                                    transition: 'all 0.2s ease-in-out', 
                                                 }}
                                                 onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)' }}
                                                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isSelected ? 'rgba(59, 130, 246, 0.1)' : 'transparent' }}
@@ -252,7 +250,7 @@ export default function AddStoryModal({ onClose }) {
                                                     type="checkbox" 
                                                     checked={isSelected} 
                                                     onChange={() => toggleUserSelection(user.id)}
-                                                    onClick={(e) => e.stopPropagation()} // Prevent double firing
+                                                    onClick={(e) => e.stopPropagation()}
                                                     style={{ cursor: 'pointer', width: '18px', height: '18px', accentColor: 'var(--primary)' }}
                                                 />
                                                 
