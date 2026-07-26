@@ -217,28 +217,64 @@ export default function ChatThread({ currentUserId }) {
                             if (msg.is_me) {
                                 return (
                                     <div key={idx} className="message-bubble" style={{ alignSelf: 'flex-end', maxWidth: '60%', display: 'flex', flexDirection: 'column' }}>
-                                        {/* ... your existing timestamp and message bubble ... */}
+                                        {/* Restored Message Content */}
+                                        <div style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)', padding: '10px 15px', border: '1px solid var(--primary)', wordWrap: 'break-word' }}>
+                                            <p style={{ margin: 0, fontSize: '1rem', lineHeight: '1.4' }}>{msg.content}</p>
+                                        </div>
                                         
-                                        {/* NEW: Seen Status for the Author */}
-                                        {isLastMessage && msg.seen_by && (
-                                            <span style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem', marginTop: '4px', alignSelf: 'flex-end', fontWeight: 'bold' }}>
-                                                {formatSeenStatus(msg.seen_by, thread.is_group)}
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
+                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
-                                        )}
+                                            
+                                            {/* Seen Status for the Author */}
+                                            {isLastMessage && msg.seen_by && (
+                                                <span style={{ color: 'var(--primary)', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                                    &bull; {formatSeenStatus(msg.seen_by, thread.is_group)}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             }
                             
                             return (
                                 <div key={idx} className="message-bubble" style={{ alignSelf: 'flex-start', maxWidth: '75%', display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
-                                    {/* ... your existing avatar and message bubble for other users ... */}
+                                    {/* Restored Avatar */}
+                                    <div style={{ width: '36px', height: '36px', flexShrink: 0, backgroundColor: 'var(--muted)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', fontSize: '1rem', fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--foreground)' }}>
+                                        {msg.sender_pic ? (
+                                            <img src={`${baseURL}${msg.sender_pic}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Avatar" />
+                                        ) : (
+                                            (msg.sender_display_name || 'U').charAt(0).toUpperCase()
+                                        )}
+                                    </div>
                                     
-                                    {/* NEW: Seen Status for Groups (visible to everyone) */}
-                                    {isLastMessage && thread.is_group && msg.seen_by && (
-                                        <span style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem', marginTop: '4px', alignSelf: 'flex-start', fontWeight: 'bold' }}>
-                                            {formatSeenStatus(msg.seen_by, true)}
-                                        </span>
-                                    )}
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        {/* Restored Sender Name (For Groups) */}
+                                        {thread.is_group && (
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '4px' }}>
+                                                {msg.sender_display_name}
+                                            </span>
+                                        )}
+                                        
+                                        {/* Restored Message Content */}
+                                        <div style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)', padding: '10px 15px', border: '1px solid var(--border)', wordWrap: 'break-word' }}>
+                                            <p style={{ margin: 0, fontSize: '1rem', lineHeight: '1.4' }}>{msg.content}</p>
+                                        </div>
+                                        
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
+                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                            
+                                            {/* Seen Status for Groups (visible to everyone) */}
+                                            {isLastMessage && thread.is_group && msg.seen_by && (
+                                                <span style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                                    &bull; {formatSeenStatus(msg.seen_by, true)}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             );
                         })
