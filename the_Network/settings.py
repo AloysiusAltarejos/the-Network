@@ -210,3 +210,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     'pragma',
     'expires',
 ]
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'frontend' / 'dist',
+]
