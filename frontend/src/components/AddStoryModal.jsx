@@ -16,7 +16,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-export default function AddStoryModal({ onClose }) {
+export default function AddStoryModal({ onClose, refreshStories }) {
     const [textContent, setTextContent] = useState('');
     const [visibility, setVisibility] = useState('public');
     const [imageFile, setImageFile] = useState(null);
@@ -128,7 +128,8 @@ export default function AddStoryModal({ onClose }) {
         .then(response => {
             if (response.ok) {
                 onClose(); 
-                window.location.reload(); 
+                if (refreshStories) 
+                    refreshStories();
             } else {
                 console.error("Failed to upload story");
                 setIsSubmitting(false);
