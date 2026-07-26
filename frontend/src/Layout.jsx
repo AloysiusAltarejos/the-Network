@@ -54,37 +54,30 @@ export default function Layout() {
     // Mobile states
     const [leftMobileOpen, setLeftMobileOpen] = useState(false);
     const [rightMobileOpen, setRightMobileOpen] = useState(false);
-    
     const [notifications, setNotifications] = useState([]);
     const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
     useEffect(() => {
-        fetch(`${baseURL}/api/notifications/`, {
-            credentials: 'include'
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.notifications) {
-                setNotifications(data.notifications);
-            }
-            if (data.unread_message_count !== undefined) {
-                setUnreadMessageCount(data.unread_message_count);
-            }
-        })
-        .catch(err => console.error("Failed to load notifications", err));
-    }, [baseURL]);
+        const fetchNotifications = () => {
+            fetch(`${baseURL}/api/notifications/`, {
+                credentials: 'include'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.notifications) {
+                    setNotifications(data.notifications);
+                }
+                if (data.unread_message_count !== undefined) {
+                    setUnreadMessageCount(data.unread_message_count);
+                }
+            })
+            .catch(err => console.error("Failed to load notifications", err));
+        };
+        fetchNotifications();
 
-    useEffect(() => {
-        fetch(`${baseURL}/api/notifications/`, {
-            credentials: 'include'
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.notifications) {
-                setNotifications(data.notifications);
-            }
-        })
-        .catch(err => console.error("Failed to load notifications", err));
+        const intervalId = setInterval(fetchNotifications, 3000);
+
+        return () => clearInterval(intervalId);
     }, [baseURL]);
 
     // Calculate unread count for the Bell Icon

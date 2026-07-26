@@ -503,11 +503,18 @@ def api_comment_action(request, pk, action):
 def api_notifications(request):
     notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')[:15]
     notif_data = []
+
+    real_unread_count = Message.objects.filter(
+        thread__participants=request.user
+    ).exclude(
+        sender=request.user
+    ).exclude(
+        read_by=request.user
+    ).distinct().count()
     
     for n in notifications:
         action_text = "interacted with you"
         
-        # (generates specific notification text based on type)
         if n.notification_type == 'like':
             if n.story:
                 action_text = "liked your story"
@@ -525,7 +532,6 @@ def api_notifications(request):
         elif n.notification_type == 'comment':
             if n.story:
                 action_text = "replied to your story"
-            # (formats text for reply to a reply)
             elif n.comment and n.comment.parent: 
                 action_text = "replied to your reply"
             else:
@@ -545,12 +551,11 @@ def api_notifications(request):
             'story_id': n.story.id if n.story else None,  
             'comment_id': n.comment.id if n.comment else None, 
             'is_read': getattr(n, 'is_read', False), 
-            'unread_message_count': request.user.profile.unread_message_count
         })
         
     return JsonResponse({
         'notifications': notif_data,
-        'unread_message_count': request.user.profile.unread_message_count
+        'unread_message_count': real_unread_count
     })
 
 # (handles notification read status)
