@@ -78,6 +78,9 @@ urlpatterns = [
 
     # --- Reports ---
     path('api/report/', views.api_submit_report, name='api_submit_report'),
+
+    # --- Catch all ---
+    re_path(r'^.*$', TemplateView.as_view(template_name="index.html")),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
