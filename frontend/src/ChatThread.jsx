@@ -25,7 +25,7 @@ export default function ChatThread({ currentUserId }) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const chatLogRef = useRef(null);
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
     
     // Modal & Settings State
     const [showSettings, setShowSettings] = useState(false);

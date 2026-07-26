@@ -241,7 +241,7 @@ export default function PostDetail() {
     const location = useLocation();
     const [highlightedReplyId, setHighlightedReplyId] = useState(null);
     const { id } = useParams();
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
     const [post, setPost] = useState(null);
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);

@@ -171,7 +171,7 @@ const FeedItem = ({ item, navigate }) => {
 const Profile = () => {
     const { username } = useParams();
     const navigate = useNavigate();
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
     const [profile, setProfile] = useState({});
     const [isCurrentUser, setIsCurrentUser] = useState(false);

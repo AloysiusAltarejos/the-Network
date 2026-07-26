@@ -17,7 +17,7 @@ function getCookie(name) {
 }
 
 export default function Post({ postData }) {
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
     // Report state
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportText, setReportText] = useState("");

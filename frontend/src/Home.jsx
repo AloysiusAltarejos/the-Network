@@ -8,7 +8,7 @@ import StoryTray from './components/StoryTray';
 import SuggestedConnection from './components/SuggestedConnections';
 
 export default function Home() {
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
     
     const [currentFeed, setCurrentFeed] = useState(() => localStorage.getItem('feedPreference') || 'global');
     const [posts, setPosts] = useState([]);

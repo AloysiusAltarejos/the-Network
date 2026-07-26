@@ -5,7 +5,7 @@ export default function Search() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState(null); 
     const [isSearching, setIsSearching] = useState(false);
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
     const handleSearch = (e) => {
         e.preventDefault();

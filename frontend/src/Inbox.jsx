@@ -19,7 +19,7 @@ function formatMessageTime(dateString) {
 export default function Inbox() {
     const [chats, setChats] = useState([]);
     const [loading, setLoading] = useState(true);
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
     useEffect(() => {
         fetch(`${baseURL}/api/inbox/`, { credentials: 'include' })

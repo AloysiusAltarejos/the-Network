@@ -47,7 +47,7 @@ export default function CreatePost({ setPosts, currentFeed }) {
     const [imageFile, setImageFile] = useState(null);
     const [myPic, setMyPic] = useState(null); 
     const fileInputRef = useRef(null);
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
     // Fetch the profile picture to display next to the input
     useEffect(() => {

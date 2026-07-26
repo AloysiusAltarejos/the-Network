@@ -30,7 +30,7 @@ export default function AddStoryModal({ onClose }) {
     const [limits, setLimits] = useState({ photos_left: 5, text_left: 5 }); 
     const [isLoadingLimits, setIsLoadingLimits] = useState(true);
 
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
     const fileInputRef = useRef(null);
 
     // Fetch limits cleanly using headers to bypass cache

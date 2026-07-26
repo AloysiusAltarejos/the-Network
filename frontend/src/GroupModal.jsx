@@ -5,7 +5,7 @@ export default function GroupModal({ isOpen, onClose, allUsers = [] }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUsers, setSelectedUsers] = useState(new Set());
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
     // Replaces filterModalUsers(): Automatically filters when search or allUsers changes
     const filteredUsers = useMemo(() => {

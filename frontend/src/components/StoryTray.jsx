@@ -15,7 +15,7 @@ export default function StoryTray() {
     const routeStoryId = queryParams.get('story');
     
     const [myPic, setMyPic] = useState(null); 
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
     useEffect(() => {
         fetch(`${baseURL}/api/stories/`, {

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function SuggestedConnections() {
     const [suggestions, setSuggestions] = useState([]);
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
     useEffect(() => {
         fetch(`${baseURL}/api/suggested/`, {

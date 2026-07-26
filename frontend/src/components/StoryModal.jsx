@@ -34,8 +34,9 @@ function getTimeAgo(dateString) {
 }
 
 export default function StoryModal({ stories, initialUserIndex, targetStoryId, onClose }) {
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
+    
     const [userIndex, setUserIndex] = useState(initialUserIndex || 0);
     const [itemIndex, setItemIndex] = useState(0);
     const [replyText, setReplyText] = useState('');

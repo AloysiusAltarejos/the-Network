@@ -4,7 +4,7 @@ export default function SettingsModal({ isOpen, onClose, thread, allUsers, curre
     const [addSearchQuery, setAddSearchQuery] = useState('');
     const [nicknames, setNicknames] = useState({});
     const [newName, setNewName] = useState('');
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
     // Filter users not currently in the thread
     const availableUsersToAdd = useMemo(() => {
