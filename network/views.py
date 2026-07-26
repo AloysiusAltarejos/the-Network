@@ -398,17 +398,16 @@ def api_thread(request, thread_id):
     nicknames = {tn.user_id: tn.nickname for tn in ThreadNickname.objects.filter(thread=thread)}
     
     for msg in messages:
-        messages_data.append({
+        msg_data = {
             'id': msg.id,
             'content': msg.content,
             'is_system': getattr(msg, 'is_system', False),
             'sender_username': msg.sender.username,
-            # (formats sender display name using nickname)
             'sender_display_name': nicknames.get(msg.sender.id, msg.sender.username), 
             'sender_pic': msg.sender.profile.profile_picture.url if msg.sender.profile.profile_picture else None,
             'is_me': msg.sender == request.user,
             'created_at': msg.created_at.isoformat(),
-        })
+        }
 
         if msg == last_msg:
             seen_users = msg.read_by.exclude(id=msg.sender.id)
